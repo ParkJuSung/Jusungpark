@@ -12,8 +12,7 @@
 #define SCREEN_HEIGHT 500
 #define KEY_DOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
 #define KEY_UP(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
-#define ENEMY_NUM 10 
-
+#define ENEMY_NUM 10
 
 // include the Direct3D Library file
 #pragma comment (lib, "d3d9.lib")
@@ -33,7 +32,10 @@ LPDIRECT3DTEXTURE9 sprite_enemy;    // the pointer to the sprite
 LPDIRECT3DTEXTURE9 sprite_bullet;    // the pointer to the sprite
 LPDIRECT3DTEXTURE9 sprite_finality;
 LPDIRECT3DTEXTURE9 sprite_Main;    // the pointer to the sprite
-LPDIRECT3DTEXTURE9 sprite_SOne;    // the pointer to the sprite
+LPDIRECT3DTEXTURE9 sprite_SOne;    // 스코어 1의자리
+LPDIRECT3DTEXTURE9 sprite_STen;    // 스코어 10의자리
+LPDIRECT3DTEXTURE9 sprite_SHund;    // 스코어 100의자리
+LPDIRECT3DTEXTURE9 sprite_SThou;    // 스코어 1000의자리
 LPDIRECT3DTEXTURE9 sprite_GameOver;    // the pointer to the sprite
 
 
@@ -43,18 +45,17 @@ bool start = false;
 bool isLive = true;
 bool finality = false;
 int score = 0;
-
-
+int Bullet_Count = 0;
+int Bullet_Time=16;
 									 // function prototypes
 void initD3D(HWND hWnd);    // sets up and initializes Direct3D
 void render_frame(void);    // renders a single frame
 void cleanD3D(void);		// closes Direct3D and releases memory
-
 void init_game(void);
 void do_game_logic(void);
 bool sphere_collision_check(float x0, float y0, float size0, float x1, float y1, float size1);
 void SetImage(int Snum, LPDIRECT3DTEXTURE9 Num);
-
+void Score_Manager();
 // the WindowProc function prototype
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -171,11 +172,10 @@ public:
 	void init(float x, float y);
 	void move();
 	bool show();
-	void hide();
 	void active();
+	void hide();
+	void active(int count);
 	bool check_collision(float x, float y);
-
-
 };
 
 
@@ -186,6 +186,8 @@ bool Bullet::check_collision(float x, float y)
 	if (sphere_collision_check(x_pos, y_pos, 32, x, y, 32) == true)
 	{
 		bShow = false;
+		score++;
+		Bullet_Count--;
 		return true;
 	}
 	else {
@@ -193,17 +195,11 @@ bool Bullet::check_collision(float x, float y)
 	}
 }
 
-
-
-
 void Bullet::init(float x, float y)
 {
 	x_pos = x;
 	y_pos = y;
-
 }
-
-
 
 bool Bullet::show()
 {
@@ -211,14 +207,10 @@ bool Bullet::show()
 
 }
 
-
 void Bullet::active()
 {
 	bShow = true;
-
 }
-
-
 
 void Bullet::move()
 {
@@ -228,18 +220,13 @@ void Bullet::move()
 void Bullet::hide()
 {
 	bShow = false;
-
+	Bullet_Count--;
 }
-
-
-
-
-
 
 //객체 생성 
 Hero hero;
 Enemy enemy[ENEMY_NUM];
-Bullet bullet;
+Bullet bullet[10];
 
 
 
@@ -463,7 +450,7 @@ void init_game(void)
 	{
 
 		enemy[i].init((float)((rand() % 300)+400), rand() % 200 - 300);
-		bullet.init(hero.x_pos, hero.y_pos);
+		bullet[i].init(hero.x_pos, hero.y_pos);
 
 	}
 
@@ -474,7 +461,7 @@ void init_game(void)
 
 void do_game_logic(void)
 {
-
+	Bullet_Time++;
 	//주인공 처리
 	if (start)
 	{
@@ -495,43 +482,48 @@ void do_game_logic(void)
 			finality = true;
 		}
 
-		//적들 처리 
+		//총알 처리 
+		if (KEY_DOWN(VK_SPACE) && Bullet_Count<10)
+		{
+  			if (bullet[Bullet_Count].show() == false)
+			{
+				if (Bullet_Time >= 5)
+				{
+					Bullet_Time = 0;
+					bullet[Bullet_Count].active();
+					bullet[Bullet_Count].init(hero.x_pos, hero.y_pos);
+					Bullet_Count++;
+				}
+			}
+		}
+
+		//적들 처리 ,충돌 처리
 		for (int i = 0; i < ENEMY_NUM; i++)
 		{
+			if (bullet[i].show() == true)
+			{
+				for (int j = 0; j < ENEMY_NUM; j++)
+				{
+					if (bullet[i].check_collision(enemy[j].x_pos, enemy[j].y_pos) == true)
+					{
+						enemy[j].init((float)(rand() % 200), rand() % 100 - 500);
+						break;
+					}
+				}
+				if (bullet[i].y_pos < -10)
+				{
+					bullet[i].hide();
+				}
+				else
+					bullet[i].move();
+			}
+
 			if (enemy[i].y_pos > 500)
 				enemy[i].init((float)(rand() % 200), rand() % 100- 500);
 			else
 				enemy[i].move();
-
-			if (bullet.show() == false)
-			{
-				if (KEY_DOWN(VK_SPACE))
-				{
-					bullet.active();
-					bullet.init(hero.x_pos, hero.y_pos);
-				}
-			}
-
-				//충돌 처리 
-				for (int i = 0; i < ENEMY_NUM; i++)
-				{
-					if (bullet.check_collision(enemy[i].x_pos, enemy[i].y_pos) == true)
-					{
-						enemy[i].init((float)(rand() % 200), rand() % 100 - 500);
-						score++;
-					}
-				}
-			}
-		if (bullet.show() == true)
-		{
-			if (bullet.y_pos < -70)
-				bullet.hide();
-			else
-				bullet.move();
 		}
 
-
-		//총알 처리 
 
 		for (int i = 0; i < ENEMY_NUM; i++)
 		{
@@ -557,23 +549,6 @@ void render_frame(void)
 
 	d3dspt->Begin(D3DXSPRITE_ALPHABLEND);    // // begin sprite drawing with transparency
 
-											 //UI 창 렌더링 
-
-
-											 /*
-											 static int frame = 21;    // start the program on the final frame
-											 if(KEY_DOWN(VK_SPACE)) frame=0;     // when the space key is pressed, start at frame 0
-											 if(frame < 21) frame++;     // if we aren't on the last frame, go to the next frame
-
-											 // calculate the x-position
-											 int xpos = frame * 182 + 1;
-
-											 RECT part;
-											 SetRect(&part, xpos, 0, xpos + 181, 128);
-											 D3DXVECTOR3 center(0.0f, 0.0f, 0.0f);    // center at the upper-left corner
-											 D3DXVECTOR3 position(150.0f, 50.0f, 0.0f);    // position at 50, 50 with no depth
-											 d3dspt->Draw(sprite, &part, &center, &position, D3DCOLOR_ARGB(127, 255, 255, 255));
-											 */
 	if (!start)
 	{
 		static int frame=0;
@@ -653,17 +628,17 @@ void render_frame(void)
 		////에네미
 
 			RECT part2;
-			SetRect(&part2, 0, 0, 120, 51);
+			SetRect(&part2, 0, 0, 64, 64);
 			D3DXVECTOR3 center2(0.0f, 0.0f, 0.0f);    // center at the upper-left corner
 
 		for (int i = 0; i<ENEMY_NUM; i++)
 		{
-			if (bullet.bShow == true)
+			if (bullet[i].bShow == true)
 			{
 				RECT part1;
-				SetRect(&part1, 0, 0, 62, 80);
+				SetRect(&part1, 0, 0, 64, 64);
 				D3DXVECTOR3 center1(0.0f, 0.0f, 0.0f);    // center at the upper-left corner
-				D3DXVECTOR3 position1(bullet.x_pos, bullet.y_pos, 0.0f);    // position at 50, 50 with no depth
+				D3DXVECTOR3 position1(bullet[i].x_pos, bullet[i].y_pos, 0.0f);    // position at 50, 50 with no depth
 				d3dspt->Draw(sprite_bullet, &part1, &center1, &position1, D3DCOLOR_ARGB(255, 255, 255, 255));
 			}
 
@@ -672,176 +647,7 @@ void render_frame(void)
 		}
 
 
-
-		RECT part4;
-		D3DXVECTOR3 center4(0.0f, 0.0f, 0.0f);
-		D3DXVECTOR3 position4(0, 0, 0.0f);
-		SetRect(&part4, 0, 0, 32, 64);
-
-		switch (score)
-		{
-		case 1:
-			D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
-				L"Number1.png",    // the file name
-				D3DX_DEFAULT,    // default width
-				D3DX_DEFAULT,    // default height
-				D3DX_DEFAULT,    // no mip mapping
-				NULL,    // regular usage
-				D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
-				D3DPOOL_MANAGED,    // typical memory handling
-				D3DX_DEFAULT,    // no filtering
-				D3DX_DEFAULT,    // no mip filtering
-				D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
-				NULL,    // no image info struct
-				NULL,    // not using 256 colors
-				&sprite_SOne);    // load to sprite
-			break;
-		case 2:
-			D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
-				L"Number2.png",    // the file name
-				D3DX_DEFAULT,    // default width
-				D3DX_DEFAULT,    // default height
-				D3DX_DEFAULT,    // no mip mapping
-				NULL,    // regular usage
-				D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
-				D3DPOOL_MANAGED,    // typical memory handling
-				D3DX_DEFAULT,    // no filtering
-				D3DX_DEFAULT,    // no mip filtering
-				D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
-				NULL,    // no image info struct
-				NULL,    // not using 256 colors
-				&sprite_SOne);    // load to sprite
-			break;
-		case 3:
-			D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
-				L"Number3.png",    // the file name
-				D3DX_DEFAULT,    // default width
-				D3DX_DEFAULT,    // default height
-				D3DX_DEFAULT,    // no mip mapping
-				NULL,    // regular usage
-				D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
-				D3DPOOL_MANAGED,    // typical memory handling
-				D3DX_DEFAULT,    // no filtering
-				D3DX_DEFAULT,    // no mip filtering
-				D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
-				NULL,    // no image info struct
-				NULL,    // not using 256 colors
-				&sprite_SOne);    // load to sprite
-			break;
-		case 4:
-			D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
-				L"Number4.png",    // the file name
-				D3DX_DEFAULT,    // default width
-				D3DX_DEFAULT,    // default height
-				D3DX_DEFAULT,    // no mip mapping
-				NULL,    // regular usage
-				D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
-				D3DPOOL_MANAGED,    // typical memory handling
-				D3DX_DEFAULT,    // no filtering
-				D3DX_DEFAULT,    // no mip filtering
-				D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
-				NULL,    // no image info struct
-				NULL,    // not using 256 colors
-				&sprite_SOne);    // load to sprite
-			break;
-		case 5:
-			D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
-				L"Number5.png",    // the file name
-				D3DX_DEFAULT,    // default width
-				D3DX_DEFAULT,    // default height
-				D3DX_DEFAULT,    // no mip mapping
-				NULL,    // regular usage
-				D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
-				D3DPOOL_MANAGED,    // typical memory handling
-				D3DX_DEFAULT,    // no filtering
-				D3DX_DEFAULT,    // no mip filtering
-				D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
-				NULL,    // no image info struct
-				NULL,    // not using 256 colors
-				&sprite_SOne);    // load to sprite
-			break;
-		case 6:
-			D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
-				L"Number6.png",    // the file name
-				D3DX_DEFAULT,    // default width
-				D3DX_DEFAULT,    // default height
-				D3DX_DEFAULT,    // no mip mapping
-				NULL,    // regular usage
-				D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
-				D3DPOOL_MANAGED,    // typical memory handling
-				D3DX_DEFAULT,    // no filtering
-				D3DX_DEFAULT,    // no mip filtering
-				D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
-				NULL,    // no image info struct
-				NULL,    // not using 256 colors
-				&sprite_SOne);    // load to sprite
-			break;
-		case 7:
-			D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
-				L"Number7.png",    // the file name
-				D3DX_DEFAULT,    // default width
-				D3DX_DEFAULT,    // default height
-				D3DX_DEFAULT,    // no mip mapping
-				NULL,    // regular usage
-				D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
-				D3DPOOL_MANAGED,    // typical memory handling
-				D3DX_DEFAULT,    // no filtering
-				D3DX_DEFAULT,    // no mip filtering
-				D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
-				NULL,    // no image info struct
-				NULL,    // not using 256 colors
-				&sprite_SOne);    // load to sprite
-			break;
-		case 8:
-			D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
-				L"Number8.png",    // the file name
-				D3DX_DEFAULT,    // default width
-				D3DX_DEFAULT,    // default height
-				D3DX_DEFAULT,    // no mip mapping
-				NULL,    // regular usage
-				D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
-				D3DPOOL_MANAGED,    // typical memory handling
-				D3DX_DEFAULT,    // no filtering
-				D3DX_DEFAULT,    // no mip filtering
-				D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
-				NULL,    // no image info struct
-				NULL,    // not using 256 colors
-				&sprite_SOne);    // load to sprite
-			break;
-		case 9:
-			D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
-				L"Number9.png",    // the file name
-				D3DX_DEFAULT,    // default width
-				D3DX_DEFAULT,    // default height
-				D3DX_DEFAULT,    // no mip mapping
-				NULL,    // regular usage
-				D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
-				D3DPOOL_MANAGED,    // typical memory handling
-				D3DX_DEFAULT,    // no filtering
-				D3DX_DEFAULT,    // no mip filtering
-				D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
-				NULL,    // no image info struct
-				NULL,    // not using 256 colors
-				&sprite_SOne);    // load to sprite
-			break;
-		case 0:
-			D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
-				L"Number0.png",    // the file name
-				D3DX_DEFAULT,    // default width
-				D3DX_DEFAULT,    // default height
-				D3DX_DEFAULT,    // no mip mapping
-				NULL,    // regular usage
-				D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
-				D3DPOOL_MANAGED,    // typical memory handling
-				D3DX_DEFAULT,    // no filtering
-				D3DX_DEFAULT,    // no mip filtering
-				D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
-				NULL,    // no image info struct
-				NULL,    // not using 256 colors
-				&sprite_SOne);    // load to sprite
-			break;
-		}
-		d3dspt->Draw(sprite_SOne, &part4, &center4, &position4, D3DCOLOR_ARGB(255, 255, 255, 255));
+		Score_Manager();
 
 		if (finality)
 		{
@@ -849,7 +655,7 @@ void render_frame(void)
 			D3DXVECTOR3 center7(0.0f, 0.0f, 0.0f);
 			D3DXVECTOR3 position7(350, 0, 0.0f);
 			SetRect(&part7, 0, 0, 400, 320);
-			d3dspt->Draw(sprite_finality, &part7, &center4, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
+			d3dspt->Draw(sprite_finality, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
 			static int show = 0;
 			show++;
 			if (show % 16 == 0)
@@ -879,11 +685,6 @@ void render_frame(void)
 		d3dspt->Draw(sprite_GameOver, &part, &center, &position, D3DCOLOR_ARGB(255, 255, 255, 255));
 	}
 
-
-
-
-	
-
 	d3dspt->End();    // end sprite drawing
 
 	d3ddev->EndScene();    // ends the 3D scene
@@ -892,6 +693,7 @@ void render_frame(void)
 
 	return;
 }
+
 
 
 // this is the function that cleans up Direct3D and COM
@@ -908,7 +710,694 @@ void cleanD3D(void)
 	sprite_GameOver->Release();
 	sprite_Main->Release();
 	sprite_SOne->Release();
-
+	sprite_SHund->Release();
+	sprite_STen->Release();
+	sprite_SThou->Release();
 	return;
 }
 
+void Score_Manager()
+{
+	RECT part;
+	D3DXVECTOR3 center(0.0f, 0.0f, 0.0f);
+	D3DXVECTOR3 position(0, 0, 0.0f);
+	SetRect(&part, 0, 0, 32, 64);
+	int score_temp = score;
+	int temp;
+	temp = score_temp / 1000;
+	switch (temp)
+	{
+	case 0:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number0.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SThou);    // load to sprite
+		break;
+
+	case 1:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number1.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SThou);    // load to sprite
+		break;
+	case 2:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number2.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SThou);    // load to sprite
+		break;
+	case 3:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number3.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SThou);    // load to sprite
+		break;
+	case 4:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number4.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SThou);    // load to sprite
+		break;
+	case 5:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number5.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SThou);    // load to sprite
+		break;
+	case 6:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number6.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SThou);    // load to sprite
+		break;
+	case 7:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number7.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SThou);    // load to sprite
+		break;
+	case 8:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number8.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SThou);    // load to sprite
+		break;
+	case 9:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number9.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SThou);    // load to sprite
+		break;
+	}
+
+	d3dspt->Draw(sprite_SThou, &part, &center, &position, D3DCOLOR_ARGB(255, 255, 255, 255));
+	D3DXVECTOR3 position1(32, 0, 0.0f);
+	score_temp = score_temp % 1000;
+	temp = score_temp / 100;
+
+	switch (temp)
+	{
+	case 0:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number0.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SHund);    // load to sprite
+		break;
+
+	case 1:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number1.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SHund);    // load to sprite
+		break;
+	case 2:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number2.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SHund);    // load to sprite
+		break;
+	case 3:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number3.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SHund);    // load to sprite
+		break;
+	case 4:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number4.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SHund);    // load to sprite
+		break;
+	case 5:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number5.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SHund);    // load to sprite
+		break;
+	case 6:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number6.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SHund);    // load to sprite
+		break;
+	case 7:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number7.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SHund);    // load to sprite
+		break;
+	case 8:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number8.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SHund);    // load to sprite
+		break;
+	case 9:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number9.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SHund);    // load to sprite
+		break;
+	}
+	d3dspt->Draw(sprite_SHund, &part, &center, &position1, D3DCOLOR_ARGB(255, 255, 255, 255));
+
+	D3DXVECTOR3 position2(64, 0, 0.0f);
+
+	score_temp = score_temp % 100;
+	temp = score_temp / 10;
+	switch (temp)
+	{
+	case 0:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number0.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_STen);    // load to sprite
+		break;
+
+	case 1:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number1.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_STen);    // load to sprite
+		break;
+	case 2:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number2.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_STen);    // load to sprite
+		break;
+	case 3:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number3.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_STen);    // load to sprite
+		break;
+	case 4:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number4.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_STen);    // load to sprite
+		break;
+	case 5:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number5.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_STen);    // load to sprite
+		break;
+	case 6:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number6.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_STen);    // load to sprite
+		break;
+	case 7:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number7.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_STen);    // load to sprite
+		break;
+	case 8:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number8.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_STen);    // load to sprite
+		break;
+	case 9:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number9.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_STen);    // load to sprite
+		break;
+	}
+
+	d3dspt->Draw(sprite_STen, &part, &center, &position2, D3DCOLOR_ARGB(255, 255, 255, 255));
+
+	D3DXVECTOR3 position3(96, 0, 0.0f);
+
+	score_temp = score_temp % 10;
+	switch (score_temp)
+	{
+	case 0:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number0.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SOne);    // load to sprite
+		break;
+
+	case 1:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number1.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SOne);    // load to sprite
+		break;
+	case 2:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number2.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SOne);    // load to sprite
+		break;
+	case 3:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number3.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SOne);    // load to sprite
+		break;
+	case 4:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number4.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SOne);    // load to sprite
+		break;
+	case 5:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number5.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SOne);    // load to sprite
+		break;
+	case 6:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number6.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SOne);    // load to sprite
+		break;
+	case 7:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number7.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SOne);    // load to sprite
+		break;
+	case 8:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number8.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SOne);    // load to sprite
+		break;
+	case 9:
+		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+			L"Number9.png",    // the file name
+			D3DX_DEFAULT,    // default width
+			D3DX_DEFAULT,    // default height
+			D3DX_DEFAULT,    // no mip mapping
+			NULL,    // regular usage
+			D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+			D3DPOOL_MANAGED,    // typical memory handling
+			D3DX_DEFAULT,    // no filtering
+			D3DX_DEFAULT,    // no mip filtering
+			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+			NULL,    // no image info struct
+			NULL,    // not using 256 colors
+			&sprite_SOne);    // load to sprite
+		break;
+	}
+	d3dspt->Draw(sprite_SOne, &part, &center, &position3, D3DCOLOR_ARGB(255, 255, 255, 255));
+}

@@ -1,12 +1,10 @@
 ﻿  Matrices49860489.cpp
-c:\users\parkjoosung\downloads\matrices49860489123\matrices49860489.cpp(249): warning C4100: 'lpCmdLine': 참조되지 않은 정식 매개 변수입니다.
-c:\users\parkjoosung\downloads\matrices49860489123\matrices49860489.cpp(248): warning C4100: 'hPrevInstance': 참조되지 않은 정식 매개 변수입니다.
-c:\users\parkjoosung\downloads\matrices49860489123\matrices49860489.cpp(465): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\downloads\matrices49860489123\matrices49860489.cpp(502): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\downloads\matrices49860489123\matrices49860489.cpp(516): warning C4456: 'i' 선언은 이전 로컬 선언을 숨깁니다.
-  c:\users\parkjoosung\downloads\matrices49860489123\matrices49860489.cpp(499): note: 'i' 선언을 참조하십시오.
-c:\users\parkjoosung\downloads\matrices49860489123\matrices49860489.cpp(520): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\downloads\matrices49860489123\matrices49860489.cpp(862): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\downloads\matrices49860489123\matrices49860489.cpp(652): warning C4189: 'enemy_kind': 지역 변수가 초기화되었으나 참조되지 않았습니다.
-  Matrices49860489_2010.vcxproj -> C:\Users\parkjoosung\Downloads\Matrices49860489123\Debug\Matrices49860489.exe
-  Matrices49860489_2010.vcxproj -> C:\Users\parkjoosung\Downloads\Matrices49860489123\Debug\Matrices49860489.pdb (Full PDB)
+c:\users\parkjoosung\documents\github\unity,directx\matrices49860489123\matrices49860489.cpp(236): warning C4100: 'lpCmdLine': 참조되지 않은 정식 매개 변수입니다.
+c:\users\parkjoosung\documents\github\unity,directx\matrices49860489123\matrices49860489.cpp(235): warning C4100: 'hPrevInstance': 참조되지 않은 정식 매개 변수입니다.
+c:\users\parkjoosung\documents\github\unity,directx\matrices49860489123\matrices49860489.cpp(452): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\unity,directx\matrices49860489123\matrices49860489.cpp(509): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\unity,directx\matrices49860489123\matrices49860489.cpp(522): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\unity,directx\matrices49860489123\matrices49860489.cpp(668): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\unity,directx\matrices49860489123\matrices49860489.cpp(627): warning C4189: 'enemy_kind': 지역 변수가 초기화되었으나 참조되지 않았습니다.
+  Matrices49860489_2010.vcxproj -> C:\Users\parkjoosung\Documents\GitHub\Unity,Directx\Matrices49860489123\Debug\Matrices49860489.exe
+  Matrices49860489_2010.vcxproj -> C:\Users\parkjoosung\Documents\GitHub\Unity,Directx\Matrices49860489123\Debug\Matrices49860489.pdb (Full PDB)
