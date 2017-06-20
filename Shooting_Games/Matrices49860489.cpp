@@ -28,8 +28,10 @@ LPD3DXSPRITE d3dspt;    // the pointer to our Direct3D Sprite interface
 						// sprite declarations
 LPDIRECT3DTEXTURE9 sprite;    // the pointer to the sprite
 LPDIRECT3DTEXTURE9 sprite_hero;    // the pointer to the sprite
-LPDIRECT3DTEXTURE9 sprite_enemy;    // the pointer to the sprite
+LPDIRECT3DTEXTURE9 sprite_enemy;    // 적1
+LPDIRECT3DTEXTURE9 sprite_enemy2;    // 적2
 LPDIRECT3DTEXTURE9 sprite_bullet;    // the pointer to the sprite
+LPDIRECT3DTEXTURE9 sprite_Bbullet;
 LPDIRECT3DTEXTURE9 sprite_finality;
 LPDIRECT3DTEXTURE9 sprite_Main;    // the pointer to the sprite
 LPDIRECT3DTEXTURE9 sprite_SOne;    // 스코어 1의자리
@@ -45,7 +47,6 @@ bool start = false;
 bool isLive = true;
 bool finality = false;
 int score = 0;
-int Bullet_Count = 0;
 int Bullet_Time=16;
 									 // function prototypes
 void initD3D(HWND hWnd);    // sets up and initializes Direct3D
@@ -56,6 +57,10 @@ void do_game_logic(void);
 bool sphere_collision_check(float x0, float y0, float size0, float x1, float y1, float size1);
 void SetImage(int Snum, LPDIRECT3DTEXTURE9 Num);
 void Score_Manager();
+void Coll();
+void B_Coll();
+void Enemy_Move();
+
 // the WindowProc function prototype
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -83,8 +88,9 @@ bool sphere_collision_check(float x0, float y0, float size0, float x1, float y1,
 		return true;
 	else
 		return false;
-
 }
+
+
 
 
 
@@ -144,6 +150,7 @@ public:
 	void fire();
 	void init(float x, float y);
 	void move();
+	void Forward_move();
 
 };
 
@@ -162,20 +169,32 @@ void Enemy::move()
 
 }
 
+void Enemy::Forward_move()
+{
+	y_pos -= 2;
+}
+
 
 // 총알 클래스 
 class Bullet :public entity {
 
 public:
 	bool bShow;
+	bool bbShow; //뒤로쏘는거
 	bool super_bShow;
 	void init(float x, float y);
+	void B_init(float x, float y);
 	void move();
+	void Bmove();
 	bool show();
+	bool Back_Show();
 	void active();
+	void Back_Active();
 	void hide();
-	void active(int count);
+	void Back_Hide();
 	bool check_collision(float x, float y);
+	int B_ypos;
+	int B_xpos;
 };
 
 
@@ -187,7 +206,6 @@ bool Bullet::check_collision(float x, float y)
 	{
 		bShow = false;
 		score++;
-		Bullet_Count--;
 		return true;
 	}
 	else {
@@ -201,10 +219,33 @@ void Bullet::init(float x, float y)
 	y_pos = y;
 }
 
+void Bullet::B_init(float x, float y)
+{
+	B_xpos = x;
+	B_ypos = y;
+}
+
+bool Bullet::Back_Show()
+{
+	return bbShow;
+}
+
+void Bullet::Back_Active()
+{
+	bbShow = true;
+}
+void Bullet::Back_Hide()
+{
+	bbShow = false;
+}
+
+void Bullet::Bmove()
+{
+	B_ypos += 15;
+}
 bool Bullet::show()
 {
 	return bShow;
-
 }
 
 void Bullet::active()
@@ -214,18 +255,19 @@ void Bullet::active()
 
 void Bullet::move()
 {
-	y_pos -= 8;
+	y_pos -= 15;
 }
 
 void Bullet::hide()
 {
 	bShow = false;
-	Bullet_Count--;
 }
 
 //객체 생성 
 Hero hero;
 Enemy enemy[ENEMY_NUM];
+Enemy enemy2[ENEMY_NUM];
+
 Bullet bullet[10];
 
 
@@ -344,6 +386,36 @@ void initD3D(HWND hWnd)
 	D3DXCreateSprite(d3ddev, &d3dspt);    // create the Direct3D Sprite object
 
 	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+		L"enemy1.png",    // the file name
+		D3DX_DEFAULT,    // default width
+		D3DX_DEFAULT,    // default height
+		D3DX_DEFAULT,    // no mip mapping
+		NULL,    // regular usage
+		D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+		D3DPOOL_MANAGED,    // typical memory handling
+		D3DX_DEFAULT,    // no filtering
+		D3DX_DEFAULT,    // no mip filtering
+		D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+		NULL,    // no image info struct
+		NULL,    // not using 256 colors
+		&sprite_enemy2);    // load to sprite
+
+	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+		L"bomb.png",    // the file name
+		D3DX_DEFAULT,    // default width
+		D3DX_DEFAULT,    // default height
+		D3DX_DEFAULT,    // no mip mapping
+		NULL,    // regular usage
+		D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+		D3DPOOL_MANAGED,    // typical memory handling
+		D3DX_DEFAULT,    // no filtering
+		D3DX_DEFAULT,    // no mip filtering
+		D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+		NULL,    // no image info struct
+		NULL,    // not using 256 colors
+		&sprite_Bbullet);    // load to sprite
+
+	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
 		L"finality.png",    // the file name
 		D3DX_DEFAULT,    // default width
 		D3DX_DEFAULT,    // default height
@@ -448,11 +520,11 @@ void init_game(void)
 	//적들 초기화 
 	for (int i = 0; i<ENEMY_NUM; i++)
 	{
-
-		enemy[i].init((float)((rand() % 300)+400), rand() % 200 - 300);
+		enemy[i].init((float)((rand() % 400)+300), rand() % 300 - 300);
+		enemy2[i].init((float)((rand() % 400) + 300), rand() % 300 + 500);
 		bullet[i].init(hero.x_pos, hero.y_pos);
-
 	}
+
 
 	//총알 초기화 
 
@@ -483,51 +555,48 @@ void do_game_logic(void)
 		}
 
 		//총알 처리 
-		if (KEY_DOWN(VK_SPACE) && Bullet_Count<10)
+		
+		if (KEY_DOWN(0x5A))
 		{
-  			if (bullet[Bullet_Count].show() == false)
+			for(int i=0;i<10;i++)
 			{
-				if (Bullet_Time >= 5)
+  				if (bullet[i].show() == false)
 				{
-					Bullet_Time = 0;
-					bullet[Bullet_Count].active();
-					bullet[Bullet_Count].init(hero.x_pos, hero.y_pos);
-					Bullet_Count++;
+					if (Bullet_Time >= 3)
+					{
+						Bullet_Time = 0;
+						bullet[i].active();
+						bullet[i].init(hero.x_pos, hero.y_pos-50);
+					}
+					break;
+				}
+			}
+		}
+		if (KEY_DOWN(0x58))
+		{
+			for (int i = 0; i < 10; i++)
+			{
+				if (bullet[i].Back_Show() == false)
+				{
+					if (Bullet_Time >= 3)
+					{
+						Bullet_Time = 0;
+						bullet[i].Back_Active();
+						bullet[i].B_init(hero.x_pos, hero.y_pos+50);
+					}
+					break;
 				}
 			}
 		}
 
 		//적들 처리 ,충돌 처리
+		Coll();
+		B_Coll();
+		Enemy_Move();
 		for (int i = 0; i < ENEMY_NUM; i++)
 		{
-			if (bullet[i].show() == true)
-			{
-				for (int j = 0; j < ENEMY_NUM; j++)
-				{
-					if (bullet[i].check_collision(enemy[j].x_pos, enemy[j].y_pos) == true)
-					{
-						enemy[j].init((float)(rand() % 200), rand() % 100 - 500);
-						break;
-					}
-				}
-				if (bullet[i].y_pos < -10)
-				{
-					bullet[i].hide();
-				}
-				else
-					bullet[i].move();
-			}
-
-			if (enemy[i].y_pos > 500)
-				enemy[i].init((float)(rand() % 200), rand() % 100- 500);
-			else
-				enemy[i].move();
-		}
-
-
-		for (int i = 0; i < ENEMY_NUM; i++)
-		{
-			if (abs(hero.x_pos - enemy[i].x_pos) <=30 && abs(hero.y_pos - enemy[i].y_pos) <=10)
+			if (abs(hero.x_pos - enemy[i].x_pos) <=30 && abs(hero.y_pos - enemy[i].y_pos) <=10||
+				abs(hero.x_pos - enemy2[i].x_pos) <= 30 && abs(hero.y_pos - enemy2[i].y_pos) <= 10)
 				isLive = false;
 		}
 	}
@@ -642,8 +711,20 @@ void render_frame(void)
 				d3dspt->Draw(sprite_bullet, &part1, &center1, &position1, D3DCOLOR_ARGB(255, 255, 255, 255));
 			}
 
+			if (bullet[i].bbShow == true)
+			{
+				RECT part1;
+				SetRect(&part1, 0, 0, 64, 64);
+				D3DXVECTOR3 center1(0.0f, 0.0f, 0.0f);    // center at the upper-left corner
+				D3DXVECTOR3 position1(bullet[i].B_xpos, bullet[i].B_ypos, 0.0f);    // position at 50, 50 with no depth
+				d3dspt->Draw(sprite_Bbullet, &part1, &center1, &position1, D3DCOLOR_ARGB(255, 255, 255, 255));
+			}
+
 			D3DXVECTOR3 position2(enemy[i].x_pos, enemy[i].y_pos, 0.0f);    // position at 50, 50 with no depth
 			d3dspt->Draw(sprite_enemy, &part2, &center2, &position2, D3DCOLOR_ARGB(255, 255, 255, 255));
+			D3DXVECTOR3 position3(enemy2[i].x_pos, enemy2[i].y_pos, 0.0f);    // position at 50, 50 with no depth
+			d3dspt->Draw(sprite_enemy2, &part2, &center2, &position3, D3DCOLOR_ARGB(255, 255, 255, 255));
+
 		}
 
 
@@ -713,6 +794,8 @@ void cleanD3D(void)
 	sprite_SHund->Release();
 	sprite_STen->Release();
 	sprite_SThou->Release();
+	sprite_Bbullet->Release();
+	sprite_enemy2->Release();
 	return;
 }
 
@@ -1400,4 +1483,92 @@ void Score_Manager()
 		break;
 	}
 	d3dspt->Draw(sprite_SOne, &part, &center, &position3, D3DCOLOR_ARGB(255, 255, 255, 255));
+}
+
+void Coll()
+{
+	for (int i = 0; i < ENEMY_NUM; i++)
+	{
+		if (bullet[i].show() == true)
+		{
+			for (int j = 0; j < ENEMY_NUM; j++)
+			{
+				if (bullet[i].check_collision(enemy[j].x_pos, enemy[j].y_pos) == true)
+				{
+					enemy[j].init((float)(rand() % 200), rand() % 100 - 500);
+					break;
+				}
+
+				if (bullet[i].check_collision(enemy2[j].x_pos, enemy2[j].y_pos) == true)
+				{
+					enemy2[j].init((float)(rand() % 200), rand() % 100 + 500);
+					break;
+				}
+
+			}
+		}
+		if (bullet[i].show() == true)
+		{
+			if (bullet[i].y_pos < -10)
+			{
+				bullet[i].hide();
+			}
+			else
+				bullet[i].move();
+		}
+	}
+}
+
+void B_Coll()
+{
+	for (int i = 0; i < ENEMY_NUM; i++)
+	{
+		if (bullet[i].Back_Show() == true)
+		{
+			for (int j = 0; j < ENEMY_NUM; j++)
+			{
+
+				if (abs(bullet[i].B_xpos - enemy[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy[j].y_pos) <= 10)
+				{
+					enemy[j].init((float)(rand() % 200), rand() % 100 - 500);
+					bullet[i].bbShow = false;
+					score++;
+					break;
+				}
+
+				if (abs(bullet[i].B_xpos - enemy2[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy2[j].y_pos) <= 10)
+				{
+					enemy2[j].init((float)(rand() % 200), rand() % 100 + 500);
+					bullet[i].bbShow = false;
+					score++;
+					break;
+				}
+			}
+		}
+		if (bullet[i].Back_Show() == true)
+		{
+			if (bullet[i].B_ypos > 500)
+			{
+				bullet[i].Back_Hide();
+			}
+			else
+				bullet[i].Bmove();
+		}
+	}
+}
+
+void Enemy_Move()
+{
+	for (int i = 0; i < ENEMY_NUM; i++)
+	{
+		if (enemy[i].y_pos > 500)
+			enemy[i].init((float)(rand() % 200), rand() % 100 - 500);
+		else
+			enemy[i].move();
+
+		if (enemy2[i].y_pos < 0)
+			enemy2[i].init((float)(rand() % 200), rand() % 100 + 500);
+		else
+			enemy2[i].Forward_move();
+	}
 }
