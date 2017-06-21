@@ -25,8 +25,6 @@ LPDIRECT3D9 d3d;    // the pointer to our Direct3D interface
 LPDIRECT3DDEVICE9 d3ddev;    // the pointer to the device class
 LPD3DXSPRITE d3dspt;    // the pointer to our Direct3D Sprite interface
 
-
-
 						// sprite declarations
 LPDIRECT3DTEXTURE9 sprite_background;    // 배경1
 LPDIRECT3DTEXTURE9 sprite_background2;    // 배경2
@@ -45,9 +43,6 @@ LPDIRECT3DTEXTURE9 sprite_GameOver;    // the pointer to the sprite
 LPDIRECT3DTEXTURE9 sprite_EnemyBullet;    // Enemy1 Bullet
 LPDIRECT3DTEXTURE9 sprite_Enemy2Bullet;    // Enemy2 Bullet
 
-
-
-
 bool start = false;
 bool isLive = true;
 bool finality = false;
@@ -60,7 +55,6 @@ void cleanD3D(void);		// closes Direct3D and releases memory
 void init_game(void);
 void do_game_logic(void);
 bool sphere_collision_check(float x0, float y0, float size0, float x1, float y1, float size1);
-void SetImage(int Snum, LPDIRECT3DTEXTURE9 Num);
 void Score_Manager();
 void Coll();
 void B_Coll();
@@ -94,9 +88,6 @@ bool sphere_collision_check(float x0, float y0, float size0, float x1, float y1,
 	else
 		return false;
 }
-
-
-
 
 
 //주인공 클래스 
@@ -157,7 +148,6 @@ void Hero::move(int i)
 class Enemy :public entity {
 
 public:
-	void fire();
 	void init(float x, float y);
 	void move();
 	void Forward_move();
@@ -832,28 +822,33 @@ void render_frame(void)
 				d3dspt->Draw(sprite_Bbullet, &part1, &center1, &position1, D3DCOLOR_ARGB(255, 255, 255, 255));
 			}
 
-			D3DXVECTOR3 position2(enemy[i].x_pos, enemy[i].y_pos, 0.0f);    // position at 50, 50 with no depth
-			d3dspt->Draw(sprite_enemy, &part2, &center2, &position2, D3DCOLOR_ARGB(255, 255, 255, 255));
-			D3DXVECTOR3 position3(enemy2[i].x_pos, enemy2[i].y_pos, 0.0f);    // position at 50, 50 with no depth
-			d3dspt->Draw(sprite_enemy2, &part2, &center2, &position3, D3DCOLOR_ARGB(255, 255, 255, 255));
+				D3DXVECTOR3 position2(enemy[i].x_pos, enemy[i].y_pos, 0.0f);    // position at 50, 50 with no depth
+				d3dspt->Draw(sprite_enemy, &part2, &center2, &position2, D3DCOLOR_ARGB(255, 255, 255, 255));
+
+				D3DXVECTOR3 position3(enemy2[i].x_pos, enemy2[i].y_pos, 0.0f);    // position at 50, 50 with no depth
+				d3dspt->Draw(sprite_enemy2, &part2, &center2, &position3, D3DCOLOR_ARGB(255, 255, 255, 255));
+
 
 		}
-		for(int i=0;i<ENEMY_NUM;i++)
-		if (Enemy_bullet[i].bShow == true)
+		for (int i = 0; i < ENEMY_NUM; i++)
 		{
-			RECT part1;
-			SetRect(&part1, 0, 0, 64, 64);
-			D3DXVECTOR3 center1(0.0f, 0.0f, 0.0f);    // center at the upper-left corner
-			D3DXVECTOR3 position1(Enemy_bullet[i].B_xpos, Enemy_bullet[i].B_ypos, 0.0f);    // position at 50, 50 with no depth
-			d3dspt->Draw(sprite_EnemyBullet, &part1, &center1, &position1, D3DCOLOR_ARGB(255, 255, 255, 255));
-
-			RECT part2;
-			SetRect(&part2, 0, 0, 64, 64);
-			D3DXVECTOR3 center2(0.0f, 0.0f, 0.0f);    // center at the upper-left corner
-			D3DXVECTOR3 position2(Enemy2_bullet[i].x_pos, Enemy2_bullet[i].y_pos, 0.0f);    // position at 50, 50 with no depth
-			d3dspt->Draw(sprite_Enemy2Bullet, &part2, &center2, &position2, D3DCOLOR_ARGB(255, 255, 255, 255));
+			if (Enemy_bullet[i].bShow == true)
+			{
+				RECT part1;
+				SetRect(&part1, 0, 0, 64, 64);
+				D3DXVECTOR3 center1(0.0f, 0.0f, 0.0f);    // center at the upper-left corner
+				D3DXVECTOR3 position1(Enemy_bullet[i].B_xpos, Enemy_bullet[i].B_ypos, 0.0f);    // position at 50, 50 with no depth
+				d3dspt->Draw(sprite_EnemyBullet, &part1, &center1, &position1, D3DCOLOR_ARGB(255, 255, 255, 255));
+			}
+			if (Enemy2_bullet[i].bShow)
+			{
+				RECT part2;
+				SetRect(&part2, 0, 0, 64, 64);
+				D3DXVECTOR3 center2(0.0f, 0.0f, 0.0f);    // center at the upper-left corner
+				D3DXVECTOR3 position2(Enemy2_bullet[i].x_pos, Enemy2_bullet[i].y_pos, 0.0f);    // position at 50, 50 with no depth
+				d3dspt->Draw(sprite_Enemy2Bullet, &part2, &center2, &position2, D3DCOLOR_ARGB(255, 255, 255, 255));
+			}
 		}
-
 		Score_Manager();
 
 		if (finality)
@@ -1623,14 +1618,14 @@ void Coll()
 				if (bullet[i].check_collision(enemy[j].x_pos, enemy[j].y_pos) == true)
 				{
 					enemy[j].init((float)(rand() % 300+200), rand() % 100-100);
-
+					Enemy_bullet[j].bShow = false;
 					break;
 				}
 
 				if (bullet[i].check_collision(enemy2[j].x_pos, enemy2[j].y_pos) == true)
 				{
 					enemy2[j].init((float)(rand() % 200), rand() % 100 + 500);
-					Enemy_bullet[i].bShow = true;
+					Enemy2_bullet[j].bShow = false;
 					break;
 				}
 
@@ -1660,7 +1655,7 @@ void B_Coll()
 				if (abs(bullet[i].B_xpos - enemy[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy[j].y_pos) <= 10)
 				{
 					enemy[j].init((float)(rand() % 300+200), rand() % 100 - 100);
-					Enemy_bullet[i].bShow = true;
+					Enemy_bullet[j].bShow = false;
 					bullet[i].bbShow = false;
 					score+=2;
 					break;
@@ -1669,7 +1664,7 @@ void B_Coll()
 				if (abs(bullet[i].B_xpos - enemy2[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy2[j].y_pos) <= 10)
 				{
 					enemy2[j].init((float)(rand() % 200), rand() % 100 + 500);
-					Enemy_bullet[i].bShow = true;
+					Enemy2_bullet[j].bShow = false;
 					bullet[i].bbShow = false;
 					score+=2;
 					break;
@@ -1703,10 +1698,11 @@ void Enemy_Move()
 		if (enemy2[i].y_pos < 0)
 		{
 			enemy2[i].init((float)(rand() % 200), rand() % 100 + 500);
-			Enemy_bullet[i].bShow = true;
+			Enemy2_bullet[i].bShow = true;
 		}
 		else
 			enemy2[i].Forward_move();
+
 		if(Enemy_bullet[i].B_ypos<500)
 			Enemy_bullet[i].Bmove();
 		else

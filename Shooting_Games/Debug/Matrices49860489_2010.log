@@ -1,28 +1,28 @@
 ﻿  Matrices49860489.cpp
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(234): warning C4244: '=': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(235): warning C4244: '=': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(289): warning C4100: 'lpCmdLine': 참조되지 않은 정식 매개 변수입니다.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(288): warning C4100: 'hPrevInstance': 참조되지 않은 정식 매개 변수입니다.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(581): warning C4244: '인수': 'LONG'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(586): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(587): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(764): warning C4244: '인수': 'int'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(783): warning C4456: 's1' 선언은 이전 로컬 선언을 숨깁니다.
-  c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(750): note: 's1' 선언을 참조하십시오.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(787): warning C4244: '인수': 'int'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(831): warning C4244: '인수': 'int'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(847): warning C4244: '인수': 'int'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(850): warning C4456: 'part2' 선언은 이전 로컬 선언을 숨깁니다.
-  c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(811): note: 'part2' 선언을 참조하십시오.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(852): warning C4456: 'center2' 선언은 이전 로컬 선언을 숨깁니다.
-  c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(813): note: 'center2' 선언을 참조하십시오.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(875): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(808): warning C4189: 'enemy_kind': 지역 변수가 초기화되었으나 참조되지 않았습니다.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(1625): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(1632): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(1662): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(1671): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(1697): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(1705): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(224): warning C4244: '=': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(225): warning C4244: '=': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(279): warning C4100: 'lpCmdLine': 참조되지 않은 정식 매개 변수입니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(278): warning C4100: 'hPrevInstance': 참조되지 않은 정식 매개 변수입니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(571): warning C4244: '인수': 'LONG'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(576): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(577): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(754): warning C4244: '인수': 'int'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(773): warning C4456: 's1' 선언은 이전 로컬 선언을 숨깁니다.
+  c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(740): note: 's1' 선언을 참조하십시오.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(777): warning C4244: '인수': 'int'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(821): warning C4244: '인수': 'int'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(840): warning C4244: '인수': 'int'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(845): warning C4456: 'part2' 선언은 이전 로컬 선언을 숨깁니다.
+  c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(801): note: 'part2' 선언을 참조하십시오.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(847): warning C4456: 'center2' 선언은 이전 로컬 선언을 숨깁니다.
+  c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(803): note: 'center2' 선언을 참조하십시오.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(870): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(798): warning C4189: 'enemy_kind': 지역 변수가 초기화되었으나 참조되지 않았습니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(1620): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(1627): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(1657): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(1666): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(1692): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\parkjoosung\documents\github\jusungpark\shooting_games\matrices49860489.cpp(1700): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
   Matrices49860489_2010.vcxproj -> C:\Users\parkjoosung\Documents\GitHub\Jusungpark\Shooting_Games\Debug\Matrices49860489.exe
   Matrices49860489_2010.vcxproj -> C:\Users\parkjoosung\Documents\GitHub\Jusungpark\Shooting_Games\Debug\Matrices49860489.pdb (Full PDB)
