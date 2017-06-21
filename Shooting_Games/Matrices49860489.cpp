@@ -28,7 +28,8 @@ LPD3DXSPRITE d3dspt;    // the pointer to our Direct3D Sprite interface
 
 
 						// sprite declarations
-LPDIRECT3DTEXTURE9 sprite;    // the pointer to the sprite
+LPDIRECT3DTEXTURE9 sprite_background;    // 배경1
+LPDIRECT3DTEXTURE9 sprite_background2;    // 배경2
 LPDIRECT3DTEXTURE9 sprite_hero;    // the pointer to the sprite
 LPDIRECT3DTEXTURE9 sprite_enemy;    // 적1
 LPDIRECT3DTEXTURE9 sprite_enemy2;    // 적2
@@ -214,7 +215,7 @@ bool Bullet::check_collision(float x, float y)
 	if (sphere_collision_check(x_pos, y_pos, 32, x, y, 32) == true)
 	{
 		bShow = false;
-		score++;
+		score+=2;
 		return true;
 	}
 	else {
@@ -396,6 +397,21 @@ void initD3D(HWND hWnd)
 	D3DXCreateSprite(d3ddev, &d3dspt);    // create the Direct3D Sprite object
 
 	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+		L"background2.png",    // the file name
+		D3DX_DEFAULT,    // default width
+		D3DX_DEFAULT,    // default height
+		D3DX_DEFAULT,    // no mip mapping
+		NULL,    // regular usage
+		D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+		D3DPOOL_MANAGED,    // typical memory handling
+		D3DX_DEFAULT,    // no filtering
+		D3DX_DEFAULT,    // no mip filtering
+		D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+		NULL,    // no image info struct
+		NULL,    // not using 256 colors
+		&sprite_background2);    // load to sprite
+
+	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
 		L"Enemy_Bullet2.png",    // the file name
 		D3DX_DEFAULT,    // default width
 		D3DX_DEFAULT,    // default height
@@ -486,7 +502,7 @@ void initD3D(HWND hWnd)
 		&sprite_GameOver);    // load to sprite
 
 	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
-		L"background.png",    // the file name
+		L"background1.png",    // the file name
 		D3DX_DEFAULT,    // default width
 		D3DX_DEFAULT,    // default height
 		D3DX_DEFAULT,    // no mip mapping
@@ -498,7 +514,7 @@ void initD3D(HWND hWnd)
 		D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
 		NULL,    // no image info struct
 		NULL,    // not using 256 colors
-		&sprite);    // load to sprite
+		&sprite_background);    // load to sprite
 
 
 	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
@@ -575,7 +591,6 @@ void init_game(void)
 		Enemy2_bullet[i].init(enemy2[i].x_pos, enemy2[i].y_pos);
 		Enemy2_bullet[i].bShow = true;
 	}
-
 
 	//총알 초기화 
 
@@ -724,16 +739,61 @@ void render_frame(void)
 	}
 	else if(start && isLive)
 	{
+		static bool Move_Mode = false;
+		static int Back_Move = 0;
 		//배경
 		RECT part3;
 		SIZE s;
 		ZeroMemory(&s, sizeof(SIZE));
 		s.cx = (LONG)::GetSystemMetrics(SM_CXFULLSCREEN);
 		s.cy = (LONG)::GetSystemMetrics(SM_CYFULLSCREEN);
-		SetRect(&part3, 0, 0, s.cx, s.cy);
-		D3DXVECTOR3 center3(0.0f, 0.0f, 0.0f);
-		D3DXVECTOR3 position3(0, 0, 0.0f);
-		d3dspt->Draw(sprite, &part3, &center3, &position3, D3DCOLOR_ARGB(255, 255, 255, 255));
+		SIZE s1;
+		ZeroMemory(&s1, sizeof(SIZE));
+		s1.cx = (LONG)::GetSystemMetrics(SM_CXFULLSCREEN);
+		s1.cy = (LONG)::GetSystemMetrics(SM_CYFULLSCREEN);
+		if (Move_Mode)
+		{
+			D3DXVECTOR3 center3(0.0f, 0.0f, 0.0f);
+
+			RECT part4;
+			D3DXVECTOR3 position4(0, 0, 0.0f);
+			SetRect(&part4, 0, Back_Move, s1.cx, s1.cy);
+			d3dspt->Draw(sprite_background2, &part4, &center3, &position4, D3DCOLOR_ARGB(255, 255, 255, 255));
+
+			SetRect(&part3, 0, 0, s.cx, s.cy);
+			D3DXVECTOR3 position3(0, 480 - Back_Move, 0.0f);
+			d3dspt->Draw(sprite_background, &part3, &center3, &position3, D3DCOLOR_ARGB(255, 255, 255, 255));
+			Back_Move++;
+
+			if (Back_Move >= 480)
+			{
+				Move_Mode = false;
+				Back_Move = 0;
+			}
+		}
+		else
+		{
+			SetRect(&part3, 0, Back_Move, s.cx, s.cy);
+			D3DXVECTOR3 center3(0.0f, 0.0f, 0.0f);
+			D3DXVECTOR3 position3(0, 0, 0.0f);
+			d3dspt->Draw(sprite_background, &part3, &center3, &position3, D3DCOLOR_ARGB(255, 255, 255, 255));
+			Back_Move++;
+
+			RECT part4;
+			SIZE s1;
+			ZeroMemory(&s1, sizeof(SIZE));
+			s1.cx = (LONG)::GetSystemMetrics(SM_CXFULLSCREEN);
+			s1.cy = (LONG)::GetSystemMetrics(SM_CYFULLSCREEN);
+			D3DXVECTOR3 position4(0, 480 - Back_Move, 0.0f);
+			SetRect(&part4, 0, 0, s1.cx, s1.cy);
+			d3dspt->Draw(sprite_background2, &part4, &center3, &position4, D3DCOLOR_ARGB(255, 255, 255, 255));
+			if (Back_Move >= 480)
+			{
+				Move_Mode = true;
+				Back_Move = 0;
+			}
+		}
+
 
 		//주인공 
 		RECT part;
@@ -846,7 +906,7 @@ void render_frame(void)
 // this is the function that cleans up Direct3D and COM
 void cleanD3D(void)
 {
-	sprite->Release();
+	sprite_background->Release();
 	d3ddev->Release();
 	d3d->Release();
 
@@ -1602,7 +1662,7 @@ void B_Coll()
 					enemy[j].init((float)(rand() % 300+200), rand() % 100 - 100);
 					Enemy_bullet[i].bShow = true;
 					bullet[i].bbShow = false;
-					score++;
+					score+=2;
 					break;
 				}
 
@@ -1611,7 +1671,7 @@ void B_Coll()
 					enemy2[j].init((float)(rand() % 200), rand() % 100 + 500);
 					Enemy_bullet[i].bShow = true;
 					bullet[i].bbShow = false;
-					score++;
+					score+=2;
 					break;
 				}
 			}
@@ -1664,9 +1724,28 @@ void Enemy_Move()
 			Enemy2_bullet[i].init(enemy2[i].x_pos, enemy2[i].y_pos);
 			Enemy2_bullet[i].bShow = true;
 		}
+
+		if (Enemy_bullet[i].bShow == true)
+		{
+
+			if (abs(Enemy_bullet[i].B_xpos - hero.x_pos) <= 30 && abs(Enemy_bullet[i].B_ypos - hero.y_pos) <= 10)
+			{
+				Enemy_bullet[i].bShow = false;
+				if (score > 0)
+					score--;
+			}
+		}
+
+		if (Enemy2_bullet[i].bShow == true)
+		{
+
+			if (abs(Enemy2_bullet[i].x_pos - hero.x_pos) <= 30 && abs(Enemy2_bullet[i].y_pos - hero.y_pos) <= 10)
+			{
+				Enemy2_bullet[i].bShow = false;
+				if (score > 0)
+					score--;
+			}
+		}
 	}
-	
 
-
-	
 }
