@@ -48,10 +48,10 @@ LPDIRECT3DTEXTURE9 sprite_Enemy2Bullet;    // Enemy2 Bullet
 
 bool start = false;
 bool isLive = true;
-bool finality = false;
+bool effect = false;
 int score = 0;
 int Bullet_Time=16;
-int wave = 6;
+int wave = 1;
 									 // function prototypes
 void initD3D(HWND hWnd);    // sets up and initializes Direct3D
 void render_frame(void);    // renders a single frame
@@ -65,7 +65,7 @@ void B_Coll();
 void Enemy_Move();
 void Create_Wave(int wave);
 void Wave_Up(bool &Create);
-
+void Coll_Effect();
 // the WindowProc function prototype
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -614,7 +614,7 @@ void initD3D(HWND hWnd)
 void init_game(void)
 {
 	PlaySound(TEXT("Strikers 1945 - BGM 04 Track 04.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP | SND_NODEFAULT);
-
+	hero.HP = 3;
 	//∞¥√º √ ±‚»≠ 
 	SIZE s;
 	ZeroMemory(&s, sizeof(SIZE));
@@ -673,7 +673,7 @@ void do_game_logic(void)
 
 		if (KEY_DOWN(0x43))
 		{
-			finality = true;
+			effect = true;
 		}
 
 		//√—æÀ √≥∏Æ 
@@ -715,12 +715,7 @@ void do_game_logic(void)
 		Coll();
 		B_Coll();
 		Enemy_Move();
-		for (int i = 0; i < ENEMY_NUM; i++)
-		{
-			if (abs(hero.x_pos - enemy[i].x_pos) <=30 && abs(hero.y_pos - enemy[i].y_pos) <=10||
-				abs(hero.x_pos - enemy2[i].x_pos) <= 30 && abs(hero.y_pos - enemy2[i].y_pos) <= 10)
-				isLive = false;
-		}
+
 	}
 	else
 	{
@@ -792,7 +787,7 @@ void render_frame(void)
 		D3DXVECTOR3 position(0, 0, 0.0f);
 		d3dspt->Draw(sprite_Main, &part, &center, &position, D3DCOLOR_ARGB(255, 255, 255, 255));
 	}
-	else if(start && isLive)
+	else if (start && isLive)
 	{
 		static bool Move_Mode = false;
 		static int Back_Move = 0;
@@ -862,11 +857,11 @@ void render_frame(void)
 
 		int enemy_kind = (int)rand() % 10;
 
-			RECT part2;
-			SetRect(&part2, 0, 0, 64, 64);
-			D3DXVECTOR3 center2(0.0f, 0.0f, 0.0f);    // center at the upper-left corner
+		RECT part2;
+		SetRect(&part2, 0, 0, 64, 64);
+		D3DXVECTOR3 center2(0.0f, 0.0f, 0.0f);    // center at the upper-left corner
 
-		for (int i = 0; i<ENEMY_NUM; i++)
+		for (int i = 0; i < ENEMY_NUM; i++)
 		{
 			if (bullet[i].bShow == true)
 			{
@@ -910,8 +905,6 @@ void render_frame(void)
 				d3dspt->Draw(sprite_enemy2, &part2, &center2, &position3, D3DCOLOR_ARGB(255, 255, 255, 255));
 			}
 			//
-
-
 		}
 		for (int i = 0; i < ENEMY_NUM; i++)
 		{
@@ -932,62 +925,54 @@ void render_frame(void)
 				d3dspt->Draw(sprite_Enemy2Bullet, &part2, &center2, &position2, D3DCOLOR_ARGB(255, 255, 255, 255));
 			}
 		}
-		Score_Manager();
-
-		if (finality)
+		for (int i = 0; i < ENEMY_NUM; i++)
 		{
-			RECT part7;
-			D3DXVECTOR3 center7(0.0f, 0.0f, 0.0f);
-			D3DXVECTOR3 position7(hero.x_pos, hero.y_pos, 0.0f);
-
-
-			static int show = 0;
-			if (show % 15 > 12)
+			if (abs(hero.x_pos - enemy[i].x_pos) <= 30 && abs(hero.y_pos - enemy[i].y_pos) <= 10 ||
+				abs(hero.x_pos - enemy2[i].x_pos) <= 30 && abs(hero.y_pos - enemy2[i].y_pos) <= 10)
+				effect = true;
+		}
+		if (hero.HP > 0)
+		{
+			if (effect)
 			{
-				SetRect(&part7, 0, 0, 128, 128);
-				d3dspt->Draw(sprite_skill3, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
-			}
-			else if (show % 15 > 8)
-			{
-				SetRect(&part7, 0, 0, 128, 128);
-				d3dspt->Draw(sprite_skill2, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
-			}
-
-			else if (show % 15 > 4)
-			{
-				SetRect(&part7, 0, 0, 64, 64);
-				d3dspt->Draw(sprite_skill1, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
-			}
-			else
-			{
-				SetRect(&part7, 0, 0, 64, 64);
-				d3dspt->Draw(sprite_skill, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
-			}
-			show++;
-			if (show % 16 == 0)
-			{
-				finality = false;
-			}
-
-			for (int i = 0; i < ENEMY_NUM; i++)
-			{
-				if (enemy[i].Enemy_Show)
+				RECT part7;
+				D3DXVECTOR3 center7(0.0f, 0.0f, 0.0f);
+				D3DXVECTOR3 position7(hero.x_pos, hero.y_pos, 0.0f);
+				static int show = 0;
+				if (show % 17 > 12)
 				{
-					score+=2;
-					enemy[i].Enemy_Show = false;
-					Enemy_bullet[i].bShow = false;
-
+					SetRect(&part7, 0, 0, 128, 128);
+					d3dspt->Draw(sprite_skill3, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
 				}
-				if (enemy2[i].Enemy_Show)
+				else if (show % 15 > 8)
 				{
-					score += 2;
-					enemy2[i].Enemy_Show = false;
-					Enemy2_bullet[i].bShow = false;
+					SetRect(&part7, 0, 0, 128, 128);
+					d3dspt->Draw(sprite_skill2, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
 				}
-				
+
+				else if (show % 15 > 4)
+				{
+					SetRect(&part7, 0, 0, 64, 64);
+					d3dspt->Draw(sprite_skill1, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
+				}
+				else
+				{
+					SetRect(&part7, 0, 0, 64, 64);
+					d3dspt->Draw(sprite_skill, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
+				}
+				show++;
+				if (show >= 16)
+				{
+					show = 0;
+					effect = false;
+					hero.HP--;
+				}
 			}
 		}
+		else
+			isLive = false;
 	}
+		Score_Manager();
 
 	if (!isLive)
 	{
