@@ -48,6 +48,7 @@ bool isLive = true;
 bool finality = false;
 int score = 0;
 int Bullet_Time=16;
+int wave = 1;
 									 // function prototypes
 void initD3D(HWND hWnd);    // sets up and initializes Direct3D
 void render_frame(void);    // renders a single frame
@@ -59,6 +60,8 @@ void Score_Manager();
 void Coll();
 void B_Coll();
 void Enemy_Move();
+void Create_Wave(int wave);
+void Wave_Up(bool &Create);
 
 // the WindowProc function prototype
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -151,6 +154,7 @@ public:
 	void init(float x, float y);
 	void move();
 	void Forward_move();
+	bool Enemy_Show;
 
 };
 
@@ -573,13 +577,16 @@ void init_game(void)
 	//적들 초기화 
 	for (int i = 0; i<ENEMY_NUM; i++)
 	{
-		enemy[i].init((float)((rand() % 400)+300), rand() % 300 - 300);
-		enemy2[i].init((float)((rand() % 400) + 300), rand() % 300 + 400);
+
+			/*enemy[i].init((float)((rand() % 400) + 300), rand() % 300 - 300);
+			Enemy_bullet[i].B_init(enemy[i].x_pos, enemy[i].y_pos);
+			Enemy_bullet[i].bShow = true;
+
+			enemy2[i].init((float)((rand() % 400) + 300), rand() % 300 + 400);
+			Enemy2_bullet[i].init(enemy2[i].x_pos, enemy2[i].y_pos);
+			Enemy2_bullet[i].bShow = true;*/
+
 		bullet[i].init(hero.x_pos, hero.y_pos);
-		Enemy_bullet[i].B_init(enemy[i].x_pos, enemy[i].y_pos);
-		Enemy_bullet[i].bShow = true;
-		Enemy2_bullet[i].init(enemy2[i].x_pos, enemy2[i].y_pos);
-		Enemy2_bullet[i].bShow = true;
 	}
 
 	//총알 초기화 
@@ -589,11 +596,19 @@ void init_game(void)
 
 void do_game_logic(void)
 {
+	static bool Create = false;
+	if (!Create)
+	{
+		Create_Wave(wave);
+		Create = true;
+	}
+	else
+		Wave_Up(Create);
+
 	Bullet_Time++;
 	//주인공 처리
 	if (start)
 	{
-
 		if (KEY_DOWN(VK_UP))
 			hero.move(MOVE_UP);
 
@@ -796,7 +811,6 @@ void render_frame(void)
 
 
 		int enemy_kind = (int)rand() % 10;
-		////에네미
 
 			RECT part2;
 			SetRect(&part2, 0, 0, 64, 64);
@@ -821,12 +835,31 @@ void render_frame(void)
 				D3DXVECTOR3 position1(bullet[i].B_xpos, bullet[i].B_ypos, 0.0f);    // position at 50, 50 with no depth
 				d3dspt->Draw(sprite_Bbullet, &part1, &center1, &position1, D3DCOLOR_ARGB(255, 255, 255, 255));
 			}
-
+			////에네미
+			if (enemy[i].Enemy_Show == true)
+			{
 				D3DXVECTOR3 position2(enemy[i].x_pos, enemy[i].y_pos, 0.0f);    // position at 50, 50 with no depth
 				d3dspt->Draw(sprite_enemy, &part2, &center2, &position2, D3DCOLOR_ARGB(255, 255, 255, 255));
+			}
+			else
+			{
+				enemy[i].x_pos = -50; enemy[i].y_pos = -50;
+				D3DXVECTOR3 position2(enemy[i].x_pos, enemy[i].y_pos, 0.0f);    // position at 50, 50 with no depth
+				d3dspt->Draw(sprite_enemy, &part2, &center2, &position2, D3DCOLOR_ARGB(255, 255, 255, 255));
+			}
 
+			if (enemy2[i].Enemy_Show == true)
+			{
 				D3DXVECTOR3 position3(enemy2[i].x_pos, enemy2[i].y_pos, 0.0f);    // position at 50, 50 with no depth
 				d3dspt->Draw(sprite_enemy2, &part2, &center2, &position3, D3DCOLOR_ARGB(255, 255, 255, 255));
+			}
+			else
+			{
+				enemy2[i].x_pos = 520; enemy2[i].y_pos = 520;
+				D3DXVECTOR3 position3(enemy2[i].x_pos, enemy2[i].y_pos, 0.0f);    // position at 50, 50 with no depth
+				d3dspt->Draw(sprite_enemy2, &part2, &center2, &position3, D3DCOLOR_ARGB(255, 255, 255, 255));
+			}
+			//
 
 
 		}
@@ -1617,14 +1650,17 @@ void Coll()
 			{
 				if (bullet[i].check_collision(enemy[j].x_pos, enemy[j].y_pos) == true)
 				{
-					enemy[j].init((float)(rand() % 300+200), rand() % 100-100);
+					//enemy[j].init((float)(rand() % 300+200), rand() % 100-100);
+					enemy[j].Enemy_Show = false;
 					Enemy_bullet[j].bShow = false;
+					
 					break;
 				}
 
 				if (bullet[i].check_collision(enemy2[j].x_pos, enemy2[j].y_pos) == true)
 				{
-					enemy2[j].init((float)(rand() % 200), rand() % 100 + 500);
+					//enemy2[j].init((float)(rand() % 200), rand() % 100 + 500);
+					enemy2[j].Enemy_Show = false;
 					Enemy2_bullet[j].bShow = false;
 					break;
 				}
@@ -1654,7 +1690,8 @@ void B_Coll()
 
 				if (abs(bullet[i].B_xpos - enemy[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy[j].y_pos) <= 10)
 				{
-					enemy[j].init((float)(rand() % 300+200), rand() % 100 - 100);
+					//enemy[j].init((float)(rand() % 300+200), rand() % 100 - 100);
+					enemy[j].Enemy_Show = false;
 					Enemy_bullet[j].bShow = false;
 					bullet[i].bbShow = false;
 					score+=2;
@@ -1663,7 +1700,8 @@ void B_Coll()
 
 				if (abs(bullet[i].B_xpos - enemy2[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy2[j].y_pos) <= 10)
 				{
-					enemy2[j].init((float)(rand() % 200), rand() % 100 + 500);
+					//enemy2[j].init((float)(rand() % 200), rand() % 100 + 500);
+					enemy2[j].Enemy_Show = false;
 					Enemy2_bullet[j].bShow = false;
 					bullet[i].bbShow = false;
 					score+=2;
@@ -1689,16 +1727,18 @@ void Enemy_Move()
 	{
 		if (enemy[i].y_pos > 500)
 		{
-			enemy[i].init((float)(rand() % 300), rand() % 100 - 100);
-			Enemy_bullet[i].bShow = true;
+			//enemy[i].init((float)(rand() % 300), rand() % 100 - 100);
+			enemy[i].Enemy_Show = false;
+			Enemy_bullet[i].bShow = false;
 		}
 		else
 			enemy[i].move();
 
 		if (enemy2[i].y_pos < 0)
 		{
-			enemy2[i].init((float)(rand() % 200), rand() % 100 + 500);
-			Enemy2_bullet[i].bShow = true;
+			//enemy2[i].init((float)(rand() % 200), rand() % 100 + 500);
+			enemy2[i].Enemy_Show = false;
+			Enemy2_bullet[i].bShow = false;
 		}
 		else
 			enemy2[i].Forward_move();
@@ -1707,18 +1747,24 @@ void Enemy_Move()
 			Enemy_bullet[i].Bmove();
 		else
 		{
-			Enemy_bullet[i].bShow = false;
-			Enemy_bullet[i].B_init(enemy[i].x_pos, enemy[i].y_pos);
-			Enemy_bullet[i].bShow = true;
+			if (enemy[i].Enemy_Show)
+			{
+				Enemy_bullet[i].bShow = false;
+				Enemy_bullet[i].B_init(enemy[i].x_pos, enemy[i].y_pos);
+				Enemy_bullet[i].bShow = true;
+			}
 		}
 
 		if (Enemy2_bullet[i].y_pos >0)
 			Enemy2_bullet[i].move();
 		else
 		{
-			Enemy2_bullet[i].bShow = false;
-			Enemy2_bullet[i].init(enemy2[i].x_pos, enemy2[i].y_pos);
-			Enemy2_bullet[i].bShow = true;
+			if (enemy2[i].Enemy_Show)
+			{
+				Enemy2_bullet[i].bShow = false;
+				Enemy2_bullet[i].init(enemy2[i].x_pos, enemy2[i].y_pos);
+				Enemy2_bullet[i].bShow = true;
+			}
 		}
 
 		if (Enemy_bullet[i].bShow == true)
@@ -1744,4 +1790,82 @@ void Enemy_Move()
 		}
 	}
 
+}
+
+void Wave_Up(bool &Create)
+{
+	int count = 0;
+	
+
+
+	for (int i = 0; i < ENEMY_NUM; i++)
+	{
+		if (wave == 1 && enemy[i].Enemy_Show == false)
+		{
+			count++;
+			if (count == 10)
+			{
+				wave++;
+				count = 0;
+				Create = false;
+			}
+		}
+		else if (wave == 2 && enemy2[i].Enemy_Show == false)
+		{
+			count++;
+			if (count == 10)
+			{
+				wave++;
+				count = 0;
+				Create = false;
+			}
+		}
+
+		else if (wave == 3 && enemy[i].Enemy_Show == false)
+		{
+			count++;
+			if (enemy2[i].Enemy_Show == false)
+				count++;
+			if (count == 20)
+			{
+				wave++;
+				count = 0;
+				Create = false;
+			}
+		}
+		else
+			break;
+	}
+}
+
+void Create_Wave(int wave)
+{
+	if (wave == 1)
+	{
+		for (int i = 0; i < ENEMY_NUM; i++)
+		{
+			enemy[i].init((float)((rand() % 400) + 300), rand() % 300 - 300);
+			enemy[i].Enemy_Show = true;
+		}
+	}
+
+	if (wave == 2)
+	{
+		for (int i = 0; i < ENEMY_NUM; i++)
+		{
+			enemy2[i].init((float)((rand() % 400) + 300), rand() % 300 + 400);
+			enemy2[i].Enemy_Show = true;
+		}
+	}
+
+	if (wave == 3)
+	{
+		for (int i = 0; i < ENEMY_NUM; i++)
+		{
+			enemy[i].init((float)((rand() % 400) + 300), rand() % 300 - 300);
+			enemy[i].Enemy_Show = true;
+			enemy2[i].init((float)((rand() % 400) + 300), rand() % 300 + 400);
+			enemy2[i].Enemy_Show = true;
+		}
+	}
 }
