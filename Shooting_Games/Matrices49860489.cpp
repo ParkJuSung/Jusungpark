@@ -33,7 +33,10 @@ LPDIRECT3DTEXTURE9 sprite_enemy;    // 적1
 LPDIRECT3DTEXTURE9 sprite_enemy2;    // 적2
 LPDIRECT3DTEXTURE9 sprite_bullet;    // the pointer to the sprite
 LPDIRECT3DTEXTURE9 sprite_Bbullet;
-LPDIRECT3DTEXTURE9 sprite_finality;
+LPDIRECT3DTEXTURE9 sprite_skill; //필살기
+LPDIRECT3DTEXTURE9 sprite_skill1; //필살기
+LPDIRECT3DTEXTURE9 sprite_skill2; //필살기
+LPDIRECT3DTEXTURE9 sprite_skill3; //필살기
 LPDIRECT3DTEXTURE9 sprite_Main;    // the pointer to the sprite
 LPDIRECT3DTEXTURE9 sprite_SOne;    // 스코어 1의자리
 LPDIRECT3DTEXTURE9 sprite_STen;    // 스코어 10의자리
@@ -48,7 +51,7 @@ bool isLive = true;
 bool finality = false;
 int score = 0;
 int Bullet_Time=16;
-int wave = 1;
+int wave = 6;
 									 // function prototypes
 void initD3D(HWND hWnd);    // sets up and initializes Direct3D
 void render_frame(void);    // renders a single frame
@@ -79,7 +82,7 @@ public:
 	float y_pos;
 	int status;
 	int HP;
-
+	int speed;
 };
 
 
@@ -155,7 +158,6 @@ public:
 	void move();
 	void Forward_move();
 	bool Enemy_Show;
-
 };
 
 void Enemy::init(float x, float y)
@@ -169,13 +171,13 @@ void Enemy::init(float x, float y)
 
 void Enemy::move()
 {
-	y_pos += 2;
+	y_pos += speed;
 
 }
 
 void Enemy::Forward_move()
 {
-	y_pos -= 2;
+	y_pos -=speed;
 }
 
 
@@ -209,7 +211,7 @@ bool Bullet::check_collision(float x, float y)
 	if (sphere_collision_check(x_pos, y_pos, 32, x, y, 32) == true)
 	{
 		bShow = false;
-		score+=2;
+		score++;
 		return true;
 	}
 	else {
@@ -266,6 +268,8 @@ void Bullet::hide()
 {
 	bShow = false;
 }
+
+
 
 //객체 생성 
 Hero hero;
@@ -466,7 +470,7 @@ void initD3D(HWND hWnd)
 		&sprite_Bbullet);    // load to sprite
 
 	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
-		L"finality.png",    // the file name
+		L"skill1.png",    // the file name
 		D3DX_DEFAULT,    // default width
 		D3DX_DEFAULT,    // default height
 		D3DX_DEFAULT,    // no mip mapping
@@ -478,7 +482,52 @@ void initD3D(HWND hWnd)
 		D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
 		NULL,    // no image info struct
 		NULL,    // not using 256 colors
-		&sprite_finality);    // load to sprite
+		&sprite_skill);    // load to sprite
+
+	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+		L"skill2.png",    // the file name
+		D3DX_DEFAULT,    // default width
+		D3DX_DEFAULT,    // default height
+		D3DX_DEFAULT,    // no mip mapping
+		NULL,    // regular usage
+		D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+		D3DPOOL_MANAGED,    // typical memory handling
+		D3DX_DEFAULT,    // no filtering
+		D3DX_DEFAULT,    // no mip filtering
+		D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+		NULL,    // no image info struct
+		NULL,    // not using 256 colors
+		&sprite_skill1);    // load to sprite
+
+	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+		L"skill3.png",    // the file name
+		D3DX_DEFAULT,    // default width
+		D3DX_DEFAULT,    // default height
+		D3DX_DEFAULT,    // no mip mapping
+		NULL,    // regular usage
+		D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+		D3DPOOL_MANAGED,    // typical memory handling
+		D3DX_DEFAULT,    // no filtering
+		D3DX_DEFAULT,    // no mip filtering
+		D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+		NULL,    // no image info struct
+		NULL,    // not using 256 colors
+		&sprite_skill2);    // load to sprite
+
+	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+		L"skill4.png",    // the file name
+		D3DX_DEFAULT,    // default width
+		D3DX_DEFAULT,    // default height
+		D3DX_DEFAULT,    // no mip mapping
+		NULL,    // regular usage
+		D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+		D3DPOOL_MANAGED,    // typical memory handling
+		D3DX_DEFAULT,    // no filtering
+		D3DX_DEFAULT,    // no mip filtering
+		D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+		NULL,    // no image info struct
+		NULL,    // not using 256 colors
+		&sprite_skill3);    // load to sprite
 
 	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
 		L"GameOver.png",    // the file name
@@ -585,7 +634,8 @@ void init_game(void)
 			enemy2[i].init((float)((rand() % 400) + 300), rand() % 300 + 400);
 			Enemy2_bullet[i].init(enemy2[i].x_pos, enemy2[i].y_pos);
 			Enemy2_bullet[i].bShow = true;*/
-
+		enemy[i].speed = 3;
+		enemy2[i].speed = -3;
 		bullet[i].init(hero.x_pos, hero.y_pos);
 	}
 
@@ -888,10 +938,31 @@ void render_frame(void)
 		{
 			RECT part7;
 			D3DXVECTOR3 center7(0.0f, 0.0f, 0.0f);
-			D3DXVECTOR3 position7(350, 0, 0.0f);
-			SetRect(&part7, 0, 0, 400, 320);
-			d3dspt->Draw(sprite_finality, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
+			D3DXVECTOR3 position7(hero.x_pos, hero.y_pos, 0.0f);
+
+
 			static int show = 0;
+			if (show % 15 > 12)
+			{
+				SetRect(&part7, 0, 0, 128, 128);
+				d3dspt->Draw(sprite_skill3, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
+			}
+			else if (show % 15 > 8)
+			{
+				SetRect(&part7, 0, 0, 128, 128);
+				d3dspt->Draw(sprite_skill2, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
+			}
+
+			else if (show % 15 > 4)
+			{
+				SetRect(&part7, 0, 0, 64, 64);
+				d3dspt->Draw(sprite_skill1, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
+			}
+			else
+			{
+				SetRect(&part7, 0, 0, 64, 64);
+				d3dspt->Draw(sprite_skill, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
+			}
 			show++;
 			if (show % 16 == 0)
 			{
@@ -900,10 +971,21 @@ void render_frame(void)
 
 			for (int i = 0; i < ENEMY_NUM; i++)
 			{
-				enemy[i].init((float)(rand() % 200), rand() % 100 - 500);
-				score++;
-			}
+				if (enemy[i].Enemy_Show)
+				{
+					score+=2;
+					enemy[i].Enemy_Show = false;
+					Enemy_bullet[i].bShow = false;
 
+				}
+				if (enemy2[i].Enemy_Show)
+				{
+					score += 2;
+					enemy2[i].Enemy_Show = false;
+					Enemy2_bullet[i].bShow = false;
+				}
+				
+			}
 		}
 	}
 
@@ -929,8 +1011,6 @@ void render_frame(void)
 	return;
 }
 
-
-
 // this is the function that cleans up Direct3D and COM
 void cleanD3D(void)
 {
@@ -951,6 +1031,10 @@ void cleanD3D(void)
 	sprite_Bbullet->Release();
 	sprite_enemy2->Release();
 	sprite_EnemyBullet->Release();
+	sprite_skill->Release();
+	sprite_skill1->Release();
+	sprite_skill2->Release();
+	sprite_skill3->Release();
 	return;
 }
 
@@ -1648,12 +1732,15 @@ void Coll()
 		{
 			for (int j = 0; j < ENEMY_NUM; j++)
 			{
-				if (bullet[i].check_collision(enemy[j].x_pos, enemy[j].y_pos) == true)
+				if (bullet[i].check_collision(enemy[j].x_pos, enemy[j].y_pos) == true && wave!=4)
 				{
 					//enemy[j].init((float)(rand() % 300+200), rand() % 100-100);
 					enemy[j].Enemy_Show = false;
 					Enemy_bullet[j].bShow = false;
-					
+					break;
+				}
+				else if (bullet[i].check_collision(enemy[j].x_pos, enemy[j].y_pos) == true && wave == 4)
+				{
 					break;
 				}
 
@@ -1688,23 +1775,30 @@ void B_Coll()
 			for (int j = 0; j < ENEMY_NUM; j++)
 			{
 
-				if (abs(bullet[i].B_xpos - enemy[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy[j].y_pos) <= 10)
+				if (abs(bullet[i].B_xpos - enemy[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy[j].y_pos) <= 10 )
 				{
 					//enemy[j].init((float)(rand() % 300+200), rand() % 100 - 100);
 					enemy[j].Enemy_Show = false;
 					Enemy_bullet[j].bShow = false;
 					bullet[i].bbShow = false;
-					score+=2;
+					score++;
 					break;
 				}
 
-				if (abs(bullet[i].B_xpos - enemy2[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy2[j].y_pos) <= 10)
+
+				if (abs(bullet[i].B_xpos - enemy2[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy2[j].y_pos) <= 10 & wave != 5)
 				{
 					//enemy2[j].init((float)(rand() % 200), rand() % 100 + 500);
 					enemy2[j].Enemy_Show = false;
 					Enemy2_bullet[j].bShow = false;
 					bullet[i].bbShow = false;
-					score+=2;
+					score++;
+					break;
+				}
+				else if (abs(bullet[i].B_xpos - enemy2[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy2[j].y_pos) <= 10 && wave == 5)
+				{
+					score ++;
+					bullet[i].bbShow = false;
 					break;
 				}
 			}
@@ -1767,15 +1861,22 @@ void Enemy_Move()
 			}
 		}
 
-		if (Enemy_bullet[i].bShow == true)
+		if (Enemy_bullet[i].bShow == true )
 		{
 
-			if (abs(Enemy_bullet[i].B_xpos - hero.x_pos) <= 30 && abs(Enemy_bullet[i].B_ypos - hero.y_pos) <= 10)
+			if (abs(Enemy_bullet[i].B_xpos - hero.x_pos) <= 30 && abs(Enemy_bullet[i].B_ypos - hero.y_pos) <= 10 && wave != 4)
 			{
 				Enemy_bullet[i].bShow = false;
-				if (score > 0)
-					score--;
+				if (score > 2)
+					score -= 3;
+				else
+					score = 0;
 			}
+			else if (abs(Enemy_bullet[i].B_xpos - hero.x_pos) <= 30 && abs(Enemy_bullet[i].B_ypos - hero.y_pos) <= 10 && wave == 4)
+				if (score > 9)
+					score -= 10;
+				else
+					score = 0;
 		}
 
 		if (Enemy2_bullet[i].bShow == true)
@@ -1784,8 +1885,13 @@ void Enemy_Move()
 			if (abs(Enemy2_bullet[i].x_pos - hero.x_pos) <= 30 && abs(Enemy2_bullet[i].y_pos - hero.y_pos) <= 10)
 			{
 				Enemy2_bullet[i].bShow = false;
-				if (score > 0)
+				if (score > 2)
+					score -= 3;
+				else if (score == 2)
+					score -= 2;
+				else if (score == 1)
 					score--;
+					
 			}
 		}
 	}
@@ -1795,7 +1901,7 @@ void Enemy_Move()
 void Wave_Up(bool &Create)
 {
 	int count = 0;
-	
+	static int Time=0;
 
 
 	for (int i = 0; i < ENEMY_NUM; i++)
@@ -1805,9 +1911,14 @@ void Wave_Up(bool &Create)
 			count++;
 			if (count == 10)
 			{
-				wave++;
-				count = 0;
-				Create = false;
+				Time++;
+				if (Time == 90)
+				{
+					wave++;
+					count = 0;
+					Create = false;
+					Time = 0;
+				}
 			}
 		}
 		else if (wave == 2 && enemy2[i].Enemy_Show == false)
@@ -1815,9 +1926,14 @@ void Wave_Up(bool &Create)
 			count++;
 			if (count == 10)
 			{
-				wave++;
-				count = 0;
-				Create = false;
+				Time++;
+				if (Time == 90)
+				{
+					wave++;
+					count = 0;
+					Create = false;
+					Time = 0;
+				}
 			}
 		}
 
@@ -1828,9 +1944,45 @@ void Wave_Up(bool &Create)
 				count++;
 			if (count == 20)
 			{
-				wave++;
-				count = 0;
-				Create = false;
+				Time++;
+				if (Time == 90)
+				{
+					wave++;
+					count = 0;
+					Create = false;
+					Time = 0;
+				}
+			}
+		}
+		else if (wave == 4 && enemy[i].Enemy_Show == false)
+		{
+			count++;
+			if (count == 10)
+			{
+				Time++;
+				if (Time == 60)
+				{
+					wave++;
+					count = 0;
+					Create = false;
+					Time = 0;
+
+				}
+			}
+		}
+		else if (wave == 5 && enemy2[i].Enemy_Show == false)
+		{
+			count++;
+			if (count == 10)
+			{
+				Time++;
+				if (Time == 30)
+				{
+					wave++;
+					count = 0;
+					Create = false;
+					Time = 0;
+				}
 			}
 		}
 		else
@@ -1866,6 +2018,44 @@ void Create_Wave(int wave)
 			enemy[i].Enemy_Show = true;
 			enemy2[i].init((float)((rand() % 400) + 300), rand() % 300 + 400);
 			enemy2[i].Enemy_Show = true;
+		}
+	}
+	if (wave == 4)
+	{
+		static int x_pos = 0;
+		for (int i = 0; i < ENEMY_NUM; i++)
+		{
+			enemy[i].init(x_pos, 0);
+			enemy[i].Enemy_Show = true;
+			x_pos += 100;
+		}
+	}
+
+	if (wave == 5)
+	{
+		static int x_pos = 0;
+		for (int i = 0; i < ENEMY_NUM; i++)
+		{
+			enemy2[i].init(x_pos, 500);
+			enemy2[i].Enemy_Show = true;
+			x_pos += 100;
+		}
+	}
+
+	if (wave == 6)
+	{
+		static int x_pos = 0;
+		static int x1_pos = 35;
+		for (int i = 0; i < ENEMY_NUM; i++)
+		{
+			enemy[i].speed = 8;
+			enemy2[i].speed = 8;
+			enemy[i].init(x_pos, 0);
+			enemy[i].Enemy_Show = true;
+			enemy2[i].init(x1_pos, 500);
+			enemy2[i].Enemy_Show = true;
+			x_pos += 100;
+			x1_pos += 100;
 		}
 	}
 }
