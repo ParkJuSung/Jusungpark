@@ -379,14 +379,14 @@
     <ClCompile Include="Matrices49860489.cpp" />
   </ItemGroup>
   <ItemGroup>
-  </ItemGroup>
-  <ItemGroup>
     <CLInclude Include="resource.h" />
-    <ResourceCompile Include="Matrices49860489.rc" />
+    <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
+    <ResourceCompile Include="Matrices498604891.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Media Include="Strikers 1945 - BGM 04 Track 04.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

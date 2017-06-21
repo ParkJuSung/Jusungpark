@@ -5,7 +5,8 @@
 #include <d3dx9.h>
 #include <iostream>
 #include <math.h>
-
+#include"resource.h"
+#include <MMSystem.h>
 
 // define the screen resolution and keyboard macros
 #define SCREEN_WIDTH  1024
@@ -15,6 +16,7 @@
 #define ENEMY_NUM 10
 
 // include the Direct3D Library file
+#pragma comment(lib, "winmm.lib")
 #pragma comment (lib, "d3d9.lib")
 #pragma comment (lib, "d3dx9.lib")
 
@@ -39,6 +41,8 @@ LPDIRECT3DTEXTURE9 sprite_STen;    // 스코어 10의자리
 LPDIRECT3DTEXTURE9 sprite_SHund;    // 스코어 100의자리
 LPDIRECT3DTEXTURE9 sprite_SThou;    // 스코어 1000의자리
 LPDIRECT3DTEXTURE9 sprite_GameOver;    // the pointer to the sprite
+LPDIRECT3DTEXTURE9 sprite_EnemyBullet;    // Enemy1 Bullet
+LPDIRECT3DTEXTURE9 sprite_Enemy2Bullet;    // Enemy2 Bullet
 
 
 
@@ -119,21 +123,26 @@ void Hero::move(int i)
 	switch (i)
 	{
 	case MOVE_UP:
-		y_pos -= 3;
+		if (y_pos >=0)
+			y_pos -= 20;
+		
 		break;
 
 	case MOVE_DOWN:
-		y_pos += 3;
+		if(y_pos<440)
+			y_pos += 20;
 		break;
 
 
 	case MOVE_LEFT:
-		x_pos -= 3;
+		if(x_pos>0)
+			x_pos -= 20;
 		break;
 
 
 	case MOVE_RIGHT:
-		x_pos += 3;
+		if(x_pos<960)
+			x_pos += 20;
 		break;
 
 	}
@@ -269,7 +278,8 @@ Enemy enemy[ENEMY_NUM];
 Enemy enemy2[ENEMY_NUM];
 
 Bullet bullet[10];
-
+Bullet Enemy_bullet[10]; //enemy1 Bullet
+Bullet Enemy2_bullet[10]; //enemy2 Bullet
 
 
 // the entry point for any Windows program
@@ -384,6 +394,36 @@ void initD3D(HWND hWnd)
 		&d3ddev);
 
 	D3DXCreateSprite(d3ddev, &d3dspt);    // create the Direct3D Sprite object
+
+	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+		L"Enemy_Bullet2.png",    // the file name
+		D3DX_DEFAULT,    // default width
+		D3DX_DEFAULT,    // default height
+		D3DX_DEFAULT,    // no mip mapping
+		NULL,    // regular usage
+		D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+		D3DPOOL_MANAGED,    // typical memory handling
+		D3DX_DEFAULT,    // no filtering
+		D3DX_DEFAULT,    // no mip filtering
+		D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+		NULL,    // no image info struct
+		NULL,    // not using 256 colors
+		&sprite_Enemy2Bullet);    // load to sprite
+
+	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+		L"Enemy_Bullet.png",    // the file name
+		D3DX_DEFAULT,    // default width
+		D3DX_DEFAULT,    // default height
+		D3DX_DEFAULT,    // no mip mapping
+		NULL,    // regular usage
+		D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+		D3DPOOL_MANAGED,    // typical memory handling
+		D3DX_DEFAULT,    // no filtering
+		D3DX_DEFAULT,    // no mip filtering
+		D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+		NULL,    // no image info struct
+		NULL,    // not using 256 colors
+		&sprite_EnemyBullet);    // load to sprite
 
 	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
 		L"enemy1.png",    // the file name
@@ -514,15 +554,26 @@ void initD3D(HWND hWnd)
 
 void init_game(void)
 {
+	PlaySound(TEXT("Strikers 1945 - BGM 04 Track 04.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP | SND_NODEFAULT);
+
 	//객체 초기화 
-	hero.init(500, 300);
+	SIZE s;
+	ZeroMemory(&s, sizeof(SIZE));
+	s.cx = (LONG)::GetSystemMetrics(SM_CXFULLSCREEN);
+	s.cy = (LONG)::GetSystemMetrics(SM_CYFULLSCREEN);
+
+	hero.init(s.cx/4, s.cy/4);
 
 	//적들 초기화 
 	for (int i = 0; i<ENEMY_NUM; i++)
 	{
 		enemy[i].init((float)((rand() % 400)+300), rand() % 300 - 300);
-		enemy2[i].init((float)((rand() % 400) + 300), rand() % 300 + 500);
+		enemy2[i].init((float)((rand() % 400) + 300), rand() % 300 + 400);
 		bullet[i].init(hero.x_pos, hero.y_pos);
+		Enemy_bullet[i].B_init(enemy[i].x_pos, enemy[i].y_pos);
+		Enemy_bullet[i].bShow = true;
+		Enemy2_bullet[i].init(enemy2[i].x_pos, enemy2[i].y_pos);
+		Enemy2_bullet[i].bShow = true;
 	}
 
 
@@ -537,6 +588,7 @@ void do_game_logic(void)
 	//주인공 처리
 	if (start)
 	{
+
 		if (KEY_DOWN(VK_UP))
 			hero.move(MOVE_UP);
 
@@ -726,7 +778,21 @@ void render_frame(void)
 			d3dspt->Draw(sprite_enemy2, &part2, &center2, &position3, D3DCOLOR_ARGB(255, 255, 255, 255));
 
 		}
+		for(int i=0;i<ENEMY_NUM;i++)
+		if (Enemy_bullet[i].bShow == true)
+		{
+			RECT part1;
+			SetRect(&part1, 0, 0, 64, 64);
+			D3DXVECTOR3 center1(0.0f, 0.0f, 0.0f);    // center at the upper-left corner
+			D3DXVECTOR3 position1(Enemy_bullet[i].B_xpos, Enemy_bullet[i].B_ypos, 0.0f);    // position at 50, 50 with no depth
+			d3dspt->Draw(sprite_EnemyBullet, &part1, &center1, &position1, D3DCOLOR_ARGB(255, 255, 255, 255));
 
+			RECT part2;
+			SetRect(&part2, 0, 0, 64, 64);
+			D3DXVECTOR3 center2(0.0f, 0.0f, 0.0f);    // center at the upper-left corner
+			D3DXVECTOR3 position2(Enemy2_bullet[i].x_pos, Enemy2_bullet[i].y_pos, 0.0f);    // position at 50, 50 with no depth
+			d3dspt->Draw(sprite_Enemy2Bullet, &part2, &center2, &position2, D3DCOLOR_ARGB(255, 255, 255, 255));
+		}
 
 		Score_Manager();
 
@@ -796,6 +862,7 @@ void cleanD3D(void)
 	sprite_SThou->Release();
 	sprite_Bbullet->Release();
 	sprite_enemy2->Release();
+	sprite_EnemyBullet->Release();
 	return;
 }
 
@@ -1495,13 +1562,15 @@ void Coll()
 			{
 				if (bullet[i].check_collision(enemy[j].x_pos, enemy[j].y_pos) == true)
 				{
-					enemy[j].init((float)(rand() % 200), rand() % 100 - 500);
+					enemy[j].init((float)(rand() % 300+200), rand() % 100-100);
+
 					break;
 				}
 
 				if (bullet[i].check_collision(enemy2[j].x_pos, enemy2[j].y_pos) == true)
 				{
 					enemy2[j].init((float)(rand() % 200), rand() % 100 + 500);
+					Enemy_bullet[i].bShow = true;
 					break;
 				}
 
@@ -1530,7 +1599,8 @@ void B_Coll()
 
 				if (abs(bullet[i].B_xpos - enemy[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy[j].y_pos) <= 10)
 				{
-					enemy[j].init((float)(rand() % 200), rand() % 100 - 500);
+					enemy[j].init((float)(rand() % 300+200), rand() % 100 - 100);
+					Enemy_bullet[i].bShow = true;
 					bullet[i].bbShow = false;
 					score++;
 					break;
@@ -1539,6 +1609,7 @@ void B_Coll()
 				if (abs(bullet[i].B_xpos - enemy2[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy2[j].y_pos) <= 10)
 				{
 					enemy2[j].init((float)(rand() % 200), rand() % 100 + 500);
+					Enemy_bullet[i].bShow = true;
 					bullet[i].bbShow = false;
 					score++;
 					break;
@@ -1562,13 +1633,40 @@ void Enemy_Move()
 	for (int i = 0; i < ENEMY_NUM; i++)
 	{
 		if (enemy[i].y_pos > 500)
-			enemy[i].init((float)(rand() % 200), rand() % 100 - 500);
+		{
+			enemy[i].init((float)(rand() % 300), rand() % 100 - 100);
+			Enemy_bullet[i].bShow = true;
+		}
 		else
 			enemy[i].move();
 
 		if (enemy2[i].y_pos < 0)
+		{
 			enemy2[i].init((float)(rand() % 200), rand() % 100 + 500);
+			Enemy_bullet[i].bShow = true;
+		}
 		else
 			enemy2[i].Forward_move();
+		if(Enemy_bullet[i].B_ypos<500)
+			Enemy_bullet[i].Bmove();
+		else
+		{
+			Enemy_bullet[i].bShow = false;
+			Enemy_bullet[i].B_init(enemy[i].x_pos, enemy[i].y_pos);
+			Enemy_bullet[i].bShow = true;
+		}
+
+		if (Enemy2_bullet[i].y_pos >0)
+			Enemy2_bullet[i].move();
+		else
+		{
+			Enemy2_bullet[i].bShow = false;
+			Enemy2_bullet[i].init(enemy2[i].x_pos, enemy2[i].y_pos);
+			Enemy2_bullet[i].bShow = true;
+		}
 	}
+	
+
+
+	
 }

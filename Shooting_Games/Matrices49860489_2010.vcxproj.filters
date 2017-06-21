@@ -21,10 +21,14 @@
     <CLInclude Include="resource.h">
       <Filter>Resource Files</Filter>
     </CLInclude>
-    <ResourceCompile Include="Matrices49860489.rc">
+    <ClInclude Include="resource1.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Matrices498604891.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <Media Include="Strikers 1945 - BGM 04 Track 04.wav" />
   </ItemGroup>
 </Project>
