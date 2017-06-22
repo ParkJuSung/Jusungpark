@@ -59,7 +59,7 @@ bool isClear = false;
 
 int score = 0;
 int Bullet_Time=16;
-int wave = 7;
+int wave = 1;
 int Boss_Pattern = 0;
 									 // function prototypes
 void initD3D(HWND hWnd);    // sets up and initializes Direct3D
@@ -293,6 +293,8 @@ Bullet Enemy2_bullet[10]; //enemy2 Bullet
 
 Bullet Boss_bullet[20];
 Bullet Boss_bullet1[20];
+Bullet Boss_bullet2[20];
+
 
 // the entry point for any Windows program
 int WINAPI WinMain(HINSTANCE hInstance,
@@ -748,8 +750,8 @@ void initD3D(HWND hWnd)
 void init_game(void)
 {
 	//PlaySound(TEXT("Strikers 1945 - BGM 04 Track 04.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP | SND_NODEFAULT);
-	hero.HP = 3;
-	Boss_enemy.HP = 100;
+	hero.HP = 100;
+	Boss_enemy.HP = 120;
 	
 	//°´Ã¼ ÃÊ±âÈ­ 
 	SIZE s;
@@ -784,6 +786,7 @@ void init_game(void)
 		Boss_slave1[i].speed = 10;
 		Boss_bullet[i].speed = 15;
 		Boss_bullet1[i].speed = 20;
+		Boss_bullet2[i].speed = 25;
 		Boss_bullet[i].bShow = false;
 		Boss_bullet1[i].bShow = false;
 	}
@@ -1128,7 +1131,10 @@ void render_frame(void)
 				{
 					show = 0;
 					effect = false;
-					hero.HP--;
+					if (Boss_Pattern == 5)
+						hero.HP -= 2;
+					else
+						hero.HP--;
 				}
 			}
 		}
@@ -1219,10 +1225,28 @@ void render_frame(void)
 					d3dspt->Draw(sprite_Boss_bullet2, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
 				}
 
+				if (Boss_bullet2[i].bShow == true)
+				{
+					RECT part7;
+					D3DXVECTOR3 center7(0.0f, 0.0f, 0.0f);
+					SetRect(&part7, 0, 0, 64, 64);
+					for (int i = 0; i < 20; i++)
+					{
+						D3DXVECTOR3 position7(Boss_bullet2[i].B_xpos, Boss_bullet2[i].B_ypos, 0.0f);
+						d3dspt->Draw(sprite_Boss_bullet3, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
+					}
+				}
+				else
+				{
+					RECT part7;
+					D3DXVECTOR3 center7(0.0f, 0.0f, 0.0f);
+					SetRect(&part7, 0, 0, 64, 64);
+					D3DXVECTOR3 position7(Boss_bullet2[i].B_xpos = -80, Boss_bullet2[i].B_ypos = -80, 0.0f);
+					d3dspt->Draw(sprite_Boss_bullet3, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
+				}
 			}
 		}
 		Score_Manager();
-
 	}
 
 	if (!isLive)
@@ -1236,6 +1260,11 @@ void render_frame(void)
 		D3DXVECTOR3 center(0.0f, 0.0f, 0.0f);
 		D3DXVECTOR3 position(0, 0, 0.0f);
 		d3dspt->Draw(sprite_GameOver, &part, &center, &position, D3DCOLOR_ARGB(255, 255, 255, 255));
+		if (score > 100)
+			score -= 100;
+		else
+			score = 0;
+		Score_Manager();
 	}
 
 	if (isClear)
@@ -1249,6 +1278,7 @@ void render_frame(void)
 		D3DXVECTOR3 center(0.0f, 0.0f, 0.0f);
 		D3DXVECTOR3 position(0, 0, 0.0f);
 		d3dspt->Draw(sprite_Clear, &part, &center, &position, D3DCOLOR_ARGB(255, 255, 255, 255));
+		Score_Manager();
 	}
 
 	d3dspt->End();    // end sprite drawing
@@ -2015,6 +2045,7 @@ void Coll()
 					if (Boss_enemy.HP <= 0)
 					{
 						Boss_enemy.Enemy_Show = false;
+						score += 1000;
 						isClear = true;
 					}
 					break;
@@ -2304,7 +2335,20 @@ void Enemy_Move(bool &Create)
 				{
 					Boss_bullet1[i].bShow = false;
 					effect = true;
+				}
+			}
 
+			if (Boss_bullet2[i].bShow == true)
+			{
+				if (Boss_bullet2[i].B_ypos < 500)
+					Boss_bullet2[i].Bmove();
+				else
+					Boss_bullet2[i].bShow = false;
+
+				if (abs(Boss_bullet2[i].B_xpos - hero.x_pos) <= 30 && abs(Boss_bullet2[i].B_ypos - hero.y_pos) <= 10)
+				{
+					Boss_bullet2[i].bShow = false;
+					effect = true;
 				}
 			}
 
@@ -2314,7 +2358,11 @@ void Enemy_Move(bool &Create)
 			if (Boss_bullet1[i].bShow == false)
 				count++;
 
-			if (count >= 80 && (Boss_Pattern == 0 || Boss_Pattern == 1 || Boss_Pattern == 3 || Boss_Pattern == 4))
+			if (Boss_bullet2[i].bShow == false)
+				count++;
+
+			if (count >= 100 && 
+				(Boss_Pattern == 0 || Boss_Pattern == 1 || Boss_Pattern == 3 || Boss_Pattern == 4 || Boss_Pattern==5) && Create==true)
 			{
 				Boss_Pattern++;
 				Create = false;
@@ -2542,13 +2590,13 @@ void Create_Wave(int wave,bool &Create)
 		else if (Boss_Pattern == 2)
 		{
 			Time++;
-			if (Time>=60 && Count < 5)
+			if (Time >= 60 && Count < 5)
 			{
 				Boss_enemy.init((float)((rand() % 1000)), rand() % 400);
 				Count++;
 				Time = 0;
 			}
-			else if(Count>=5)
+			else if (Count >= 5)
 			{
 				Count = 0;
 				Time = 0;
@@ -2560,8 +2608,8 @@ void Create_Wave(int wave,bool &Create)
 		{
 			for (int i = 0; i < 10; i++)
 			{
-				Boss_bullet[i].B_xpos = i*50; 
-				Boss_bullet[i].B_ypos = i*20;
+				Boss_bullet[i].B_xpos = i * 50;
+				Boss_bullet[i].B_ypos = i * 20;
 				Boss_bullet[i].bShow = true;
 			}
 		}
@@ -2570,11 +2618,21 @@ void Create_Wave(int wave,bool &Create)
 		{
 			for (int i = 0; i < 10; i++)
 			{
-				Boss_bullet1[i].B_xpos = i * 50 +500;
+				Boss_bullet1[i].B_xpos = i * 50 + 500;
 				Boss_bullet1[i].B_ypos = i * 20;
 				Boss_bullet1[i].bShow = true;
 			}
 		}
-
+		else if (Boss_Pattern == 5)
+		{
+			for (int i = 0; i < 20; i++)
+			{
+				Boss_bullet2[i].B_xpos = i * 80;
+				Boss_bullet2[i].B_ypos = 0;
+				Boss_bullet2[i].bShow = true;
+			}
+		}
+		else if (Boss_Pattern == 6)
+			isClear = true;
 	}
 }
