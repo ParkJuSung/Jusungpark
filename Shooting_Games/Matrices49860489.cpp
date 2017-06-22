@@ -29,14 +29,15 @@ LPD3DXSPRITE d3dspt;    // the pointer to our Direct3D Sprite interface
 LPDIRECT3DTEXTURE9 sprite_background;    // 배경1
 LPDIRECT3DTEXTURE9 sprite_background2;    // 배경2
 LPDIRECT3DTEXTURE9 sprite_hero;    // the pointer to the sprite
-LPDIRECT3DTEXTURE9 sprite_enemy;    // 적1
-LPDIRECT3DTEXTURE9 sprite_enemy2;    // 적2
+LPDIRECT3DTEXTURE9 sprite_enemy;    // enemy1
+LPDIRECT3DTEXTURE9 sprite_enemy2;    // enemy2
+LPDIRECT3DTEXTURE9 sprite_Boss;    // Boss
 LPDIRECT3DTEXTURE9 sprite_bullet;    // the pointer to the sprite
 LPDIRECT3DTEXTURE9 sprite_Bbullet;
-LPDIRECT3DTEXTURE9 sprite_skill; //필살기
-LPDIRECT3DTEXTURE9 sprite_skill1; //필살기
-LPDIRECT3DTEXTURE9 sprite_skill2; //필살기
-LPDIRECT3DTEXTURE9 sprite_skill3; //필살기
+LPDIRECT3DTEXTURE9 sprite_skill; //
+LPDIRECT3DTEXTURE9 sprite_skill1; //
+LPDIRECT3DTEXTURE9 sprite_skill2; //
+LPDIRECT3DTEXTURE9 sprite_skill3; //
 LPDIRECT3DTEXTURE9 sprite_Main;    // the pointer to the sprite
 LPDIRECT3DTEXTURE9 sprite_SOne;    // 스코어 1의자리
 LPDIRECT3DTEXTURE9 sprite_STen;    // 스코어 10의자리
@@ -45,13 +46,16 @@ LPDIRECT3DTEXTURE9 sprite_SThou;    // 스코어 1000의자리
 LPDIRECT3DTEXTURE9 sprite_GameOver;    // the pointer to the sprite
 LPDIRECT3DTEXTURE9 sprite_EnemyBullet;    // Enemy1 Bullet
 LPDIRECT3DTEXTURE9 sprite_Enemy2Bullet;    // Enemy2 Bullet
+LPDIRECT3DTEXTURE9 sprite_Clear;    //Clear Screen
 
 bool start = false;
 bool isLive = true;
 bool effect = false;
+bool isClear = false;
+
 int score = 0;
 int Bullet_Time=16;
-int wave = 1;
+int wave = 5;
 									 // function prototypes
 void initD3D(HWND hWnd);    // sets up and initializes Direct3D
 void render_frame(void);    // renders a single frame
@@ -275,6 +279,7 @@ void Bullet::hide()
 Hero hero;
 Enemy enemy[ENEMY_NUM];
 Enemy enemy2[ENEMY_NUM];
+Enemy Boss_enemy;
 
 Bullet bullet[10];
 Bullet Enemy_bullet[10]; //enemy1 Bullet
@@ -393,6 +398,36 @@ void initD3D(HWND hWnd)
 		&d3ddev);
 
 	D3DXCreateSprite(d3ddev, &d3dspt);    // create the Direct3D Sprite object
+
+	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+		L"Clear.png",    // the file name
+		D3DX_DEFAULT,    // default width
+		D3DX_DEFAULT,    // default height
+		D3DX_DEFAULT,    // no mip mapping
+		NULL,    // regular usage
+		D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+		D3DPOOL_MANAGED,    // typical memory handling
+		D3DX_DEFAULT,    // no filtering
+		D3DX_DEFAULT,    // no mip filtering
+		D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+		NULL,    // no image info struct
+		NULL,    // not using 256 colors
+		&sprite_Clear);    // load to sprite
+
+	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+		L"Boss.png",    // the file name
+		D3DX_DEFAULT,    // default width
+		D3DX_DEFAULT,    // default height
+		D3DX_DEFAULT,    // no mip mapping
+		NULL,    // regular usage
+		D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+		D3DPOOL_MANAGED,    // typical memory handling
+		D3DX_DEFAULT,    // no filtering
+		D3DX_DEFAULT,    // no mip filtering
+		D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+		NULL,    // no image info struct
+		NULL,    // not using 256 colors
+		&sprite_Boss);    // load to sprite
 
 	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
 		L"background2.png",    // the file name
@@ -613,7 +648,7 @@ void initD3D(HWND hWnd)
 
 void init_game(void)
 {
-	PlaySound(TEXT("Strikers 1945 - BGM 04 Track 04.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP | SND_NODEFAULT);
+	//PlaySound(TEXT("Strikers 1945 - BGM 04 Track 04.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP | SND_NODEFAULT);
 	hero.HP = 3;
 	//객체 초기화 
 	SIZE s;
@@ -635,7 +670,7 @@ void init_game(void)
 			Enemy2_bullet[i].init(enemy2[i].x_pos, enemy2[i].y_pos);
 			Enemy2_bullet[i].bShow = true;*/
 		enemy[i].speed = 3;
-		enemy2[i].speed = -3;
+		enemy2[i].speed = 3;
 		bullet[i].init(hero.x_pos, hero.y_pos);
 	}
 
@@ -905,6 +940,22 @@ void render_frame(void)
 				d3dspt->Draw(sprite_enemy2, &part2, &center2, &position3, D3DCOLOR_ARGB(255, 255, 255, 255));
 			}
 			//
+
+			if (Boss_enemy.Enemy_Show)
+			{
+				RECT part5;
+				SetRect(&part5, 0, 0, 128, 128);
+				D3DXVECTOR3 position3(Boss_enemy.x_pos, Boss_enemy.y_pos, 0.0f);    // position at 50, 50 with no depth
+				d3dspt->Draw(sprite_Boss, &part5, &center2, &position3, D3DCOLOR_ARGB(255, 255, 255, 255));
+			}
+			else
+			{
+				RECT part5;
+				SetRect(&part5, 0, 0, 128, 128);
+				Boss_enemy.x_pos = -200; Boss_enemy.y_pos = -200;
+				D3DXVECTOR3 position3(Boss_enemy.x_pos, Boss_enemy.y_pos, 0.0f);    // position at 50, 50 with no depth
+				d3dspt->Draw(sprite_Boss, &part5, &center2, &position3, D3DCOLOR_ARGB(255, 255, 255, 255));
+			}
 		}
 		for (int i = 0; i < ENEMY_NUM; i++)
 		{
@@ -987,6 +1038,19 @@ void render_frame(void)
 		d3dspt->Draw(sprite_GameOver, &part, &center, &position, D3DCOLOR_ARGB(255, 255, 255, 255));
 	}
 
+	if (isClear)
+	{
+		RECT part;
+		SIZE s;
+		ZeroMemory(&s, sizeof(SIZE));
+		s.cx = (LONG)::GetSystemMetrics(SM_CXFULLSCREEN);
+		s.cy = (LONG)::GetSystemMetrics(SM_CYFULLSCREEN);
+		SetRect(&part, 0, 0, s.cx, s.cy);
+		D3DXVECTOR3 center(0.0f, 0.0f, 0.0f);
+		D3DXVECTOR3 position(0, 0, 0.0f);
+		d3dspt->Draw(sprite_Clear, &part, &center, &position, D3DCOLOR_ARGB(255, 255, 255, 255));
+	}
+
 	d3dspt->End();    // end sprite drawing
 
 	d3ddev->EndScene();    // ends the 3D scene
@@ -1020,6 +1084,7 @@ void cleanD3D(void)
 	sprite_skill1->Release();
 	sprite_skill2->Release();
 	sprite_skill3->Release();
+	sprite_Clear->Release();
 	return;
 }
 
@@ -1637,10 +1702,10 @@ void Score_Manager()
 			D3DX_DEFAULT,    // no filtering
 			D3DX_DEFAULT,    // no mip filtering
 			D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
-			NULL,    // no image info struct
-			NULL,    // not using 256 colors
-			&sprite_SOne);    // load to sprite
-		break;
+NULL,    // no image info struct
+NULL,    // not using 256 colors
+&sprite_SOne);    // load to sprite
+break;
 	case 6:
 		D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
 			L"Number6.png",    // the file name
@@ -1717,26 +1782,40 @@ void Coll()
 		{
 			for (int j = 0; j < ENEMY_NUM; j++)
 			{
-				if (bullet[i].check_collision(enemy[j].x_pos, enemy[j].y_pos) == true && wave!=4)
+				if (bullet[i].check_collision(enemy[j].x_pos, enemy[j].y_pos) == true && (wave != 4 && wave != 6))
 				{
 					//enemy[j].init((float)(rand() % 300+200), rand() % 100-100);
 					enemy[j].Enemy_Show = false;
 					Enemy_bullet[j].bShow = false;
 					break;
 				}
-				else if (bullet[i].check_collision(enemy[j].x_pos, enemy[j].y_pos) == true && wave == 4)
+				else if (bullet[i].check_collision(enemy[j].x_pos, enemy[j].y_pos) == true && (wave == 4 || wave == 6))
 				{
 					break;
 				}
 
-				if (bullet[i].check_collision(enemy2[j].x_pos, enemy2[j].y_pos) == true)
+				if (bullet[i].check_collision(enemy2[j].x_pos, enemy2[j].y_pos) == true && wave != 6)
 				{
 					//enemy2[j].init((float)(rand() % 200), rand() % 100 + 500);
 					enemy2[j].Enemy_Show = false;
 					Enemy2_bullet[j].bShow = false;
 					break;
 				}
+				else if (bullet[i].check_collision(enemy[j].x_pos, enemy[j].y_pos) == true && wave == 6)
+				{
+					break;
+				}
 
+				if (bullet[i].check_collision(Boss_enemy.x_pos, Boss_enemy.y_pos) == true)
+				{
+					Boss_enemy.HP--;
+					if (Boss_enemy.HP <= 0)
+					{
+						Boss_enemy.Enemy_Show = false;
+						isClear = true;
+					}
+					break;
+				}
 			}
 		}
 		if (bullet[i].show() == true)
@@ -1760,7 +1839,7 @@ void B_Coll()
 			for (int j = 0; j < ENEMY_NUM; j++)
 			{
 
-				if (abs(bullet[i].B_xpos - enemy[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy[j].y_pos) <= 10 )
+				if (abs(bullet[i].B_xpos - enemy[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy[j].y_pos) <= 10  && wave!=6)
 				{
 					//enemy[j].init((float)(rand() % 300+200), rand() % 100 - 100);
 					enemy[j].Enemy_Show = false;
@@ -1769,9 +1848,15 @@ void B_Coll()
 					score++;
 					break;
 				}
+				else if (abs(bullet[i].B_xpos - enemy[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy[j].y_pos) <= 10 && wave == 6)
+				{
+					score++;
+					bullet[i].bbShow = false;
+					break;
+				}
 
 
-				if (abs(bullet[i].B_xpos - enemy2[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy2[j].y_pos) <= 10 & wave != 5)
+				if (abs(bullet[i].B_xpos - enemy2[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy2[j].y_pos) <= 10 & (wave != 5 && wave!=6))
 				{
 					//enemy2[j].init((float)(rand() % 200), rand() % 100 + 500);
 					enemy2[j].Enemy_Show = false;
@@ -1780,7 +1865,7 @@ void B_Coll()
 					score++;
 					break;
 				}
-				else if (abs(bullet[i].B_xpos - enemy2[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy2[j].y_pos) <= 10 && wave == 5)
+				else if (abs(bullet[i].B_xpos - enemy2[j].x_pos) <= 30 && abs(bullet[i].B_ypos - enemy2[j].y_pos) <= 10 && (wave == 5 || wave==6))
 				{
 					score ++;
 					bullet[i].bbShow = false;
@@ -1867,16 +1952,21 @@ void Enemy_Move()
 		if (Enemy2_bullet[i].bShow == true)
 		{
 
-			if (abs(Enemy2_bullet[i].x_pos - hero.x_pos) <= 30 && abs(Enemy2_bullet[i].y_pos - hero.y_pos) <= 10)
+			if (abs(Enemy2_bullet[i].x_pos - hero.x_pos) <= 30 && abs(Enemy2_bullet[i].y_pos - hero.y_pos) <= 10 && wave !=5)
 			{
 				Enemy2_bullet[i].bShow = false;
 				if (score > 2)
 					score -= 3;
-				else if (score == 2)
-					score -= 2;
-				else if (score == 1)
-					score--;
-					
+				else 
+					score = 0;					
+			}
+			else if (abs(Enemy2_bullet[i].x_pos - hero.x_pos) <= 30 && abs(Enemy2_bullet[i].y_pos - hero.y_pos) <= 10 && wave == 5)
+			{
+				Enemy2_bullet[i].bShow = false;
+				if (score > 9)
+					score -= 10;
+				else
+					score = 0;
 			}
 		}
 	}
@@ -1970,6 +2060,23 @@ void Wave_Up(bool &Create)
 				}
 			}
 		}
+		else if (wave == 6 && enemy[i].Enemy_Show == false)
+		{
+			count++;
+			if (enemy2[i].Enemy_Show == false)
+				count++;
+			if (count == 20)
+			{
+				Time++;
+				if (Time == 90)
+				{
+					wave++;
+					count = 0;
+					Create = false;
+					Time = 0;
+				}
+			}
+		}
 		else
 			break;
 	}
@@ -1983,6 +2090,8 @@ void Create_Wave(int wave)
 		{
 			enemy[i].init((float)((rand() % 400) + 300), rand() % 300 - 300);
 			enemy[i].Enemy_Show = true;
+			Enemy_bullet[i].B_init(enemy[i].x_pos, enemy[i].y_pos);
+			Enemy_bullet[i].bShow = true;
 		}
 	}
 
@@ -2003,6 +2112,8 @@ void Create_Wave(int wave)
 			enemy[i].Enemy_Show = true;
 			enemy2[i].init((float)((rand() % 400) + 300), rand() % 300 + 400);
 			enemy2[i].Enemy_Show = true;
+			Enemy_bullet[i].B_init(enemy[i].x_pos, enemy[i].y_pos);
+			Enemy_bullet[i].bShow = true;
 		}
 	}
 	if (wave == 4)
@@ -2012,6 +2123,8 @@ void Create_Wave(int wave)
 		{
 			enemy[i].init(x_pos, 0);
 			enemy[i].Enemy_Show = true;
+			Enemy_bullet[i].B_init(enemy[i].x_pos, enemy[i].y_pos);
+			Enemy_bullet[i].bShow = true;
 			x_pos += 100;
 		}
 	}
@@ -2039,8 +2152,17 @@ void Create_Wave(int wave)
 			enemy[i].Enemy_Show = true;
 			enemy2[i].init(x1_pos, 500);
 			enemy2[i].Enemy_Show = true;
+			Enemy_bullet[i].B_init(enemy[i].x_pos, enemy[i].y_pos);
+			Enemy_bullet[i].bShow = true;
 			x_pos += 100;
 			x1_pos += 100;
 		}
+	}
+
+	if (wave == 7)
+	{
+		Boss_enemy.init(450, 30);
+		Boss_enemy.HP = 100;
+		Boss_enemy.Enemy_Show = true;
 	}
 }
