@@ -60,7 +60,7 @@ bool isClear = false;
 int score = 0;
 int Bullet_Time=16;
 int wave = 7;
-int Boss_Pattern = 4;
+int Boss_Pattern = 0;
 									 // function prototypes
 void initD3D(HWND hWnd);    // sets up and initializes Direct3D
 void render_frame(void);    // renders a single frame
@@ -784,6 +784,8 @@ void init_game(void)
 		Boss_slave1[i].speed = 10;
 		Boss_bullet[i].speed = 15;
 		Boss_bullet1[i].speed = 20;
+		Boss_bullet[i].bShow = false;
+		Boss_bullet1[i].bShow = false;
 	}
 	//醚舅 檬扁拳 
 
@@ -793,13 +795,17 @@ void init_game(void)
 void do_game_logic(void)
 {
 	static bool Create = false;
+
 	if (!Create)
 	{
 		Create = true;	
 		Create_Wave(wave,Create);
 	}
-	else
+	else {
 		Wave_Up(Create);
+		Enemy_Move(Create);
+	}
+
 
 	Bullet_Time++;
 	//林牢傍 贸府
@@ -856,7 +862,6 @@ void do_game_logic(void)
 		//利甸 贸府 ,面倒 贸府
 		Coll();
 		B_Coll();
-		Enemy_Move(Create);
 
 	}
 	else
@@ -1280,6 +1285,9 @@ void cleanD3D(void)
 	sprite_skill2->Release();
 	sprite_skill3->Release();
 	sprite_Clear->Release();
+	sprite_Boss_bullet->Release();
+	sprite_Boss_bullet2->Release();
+	sprite_Boss_bullet3->Release();
 	return;
 }
 
@@ -2250,7 +2258,7 @@ void Enemy_Move(bool &Create)
 			else
 				Boss_slave[i].move();
 
-			if (Boss_slave[i].Enemy_Show == false && Boss_slave[i].y_pos==600)
+			if (Boss_slave[i].Enemy_Show == false)
 			{
 				count++;
 			}
@@ -2260,7 +2268,7 @@ void Enemy_Move(bool &Create)
 			else
 				Boss_slave1[i].Forward_move();
 			
-			if(Boss_slave1[i].Enemy_Show == false && Boss_slave1[i].y_pos==-80)
+			if(Boss_slave1[i].Enemy_Show == false)
 			{
 				count++;
 			}
@@ -2271,23 +2279,46 @@ void Enemy_Move(bool &Create)
 				effect = true;
 			}
 
-			if (Boss_bullet[i].bShow = true)
+			if (Boss_bullet[i].bShow == true)
 			{
-				Boss_bullet[i].Bmove();
-			}
-			
-			if (Boss_bullet1[i].bShow = true)
-			{
-				Boss_bullet1[i].Bmove();
+				if (Boss_bullet[i].B_ypos < 500)
+					Boss_bullet[i].Bmove();
+				else
+					Boss_bullet[i].bShow = false;
 
+				if (abs(Boss_bullet[i].B_xpos - hero.x_pos) <= 30 && abs(Boss_bullet[i].B_ypos - hero.y_pos) <= 10)
+				{
+					Boss_bullet[i].bShow = false;
+					effect = true;
+
+				}
 			}
-			if (count >= 40 && (Boss_Pattern == 0 || Boss_Pattern == 1))
+			if (Boss_bullet1[i].bShow == true)
+			{
+				if (Boss_bullet1[i].B_ypos < 500)
+					Boss_bullet1[i].Bmove();
+				else
+					Boss_bullet1[i].bShow = false;
+
+				if (abs(Boss_bullet1[i].B_xpos - hero.x_pos) <= 30 && abs(Boss_bullet1[i].B_ypos - hero.y_pos) <= 10)
+				{
+					Boss_bullet1[i].bShow = false;
+					effect = true;
+
+				}
+			}
+
+			if (Boss_bullet[i].bShow == false)
+				count++;
+
+			if (Boss_bullet1[i].bShow == false)
+				count++;
+
+			if (count >= 80 && (Boss_Pattern == 0 || Boss_Pattern == 1 || Boss_Pattern == 3 || Boss_Pattern == 4))
 			{
 				Boss_Pattern++;
 				Create = false;
 			}
-
-
 		}
 	}
 
@@ -2517,7 +2548,7 @@ void Create_Wave(int wave,bool &Create)
 				Count++;
 				Time = 0;
 			}
-			else if(Time>=60 && Count>=5)
+			else if(Count>=5)
 			{
 				Count = 0;
 				Time = 0;
