@@ -32,6 +32,8 @@ LPDIRECT3DTEXTURE9 sprite_hero;    // the pointer to the sprite
 LPDIRECT3DTEXTURE9 sprite_enemy;    // enemy1
 LPDIRECT3DTEXTURE9 sprite_enemy2;    // enemy2
 LPDIRECT3DTEXTURE9 sprite_Boss;    // Boss
+LPDIRECT3DTEXTURE9 sprite_slave; //Boss slave
+LPDIRECT3DTEXTURE9 sprite_slave1; //Boss slave1
 LPDIRECT3DTEXTURE9 sprite_bullet;    // the pointer to the sprite
 LPDIRECT3DTEXTURE9 sprite_Bbullet;
 LPDIRECT3DTEXTURE9 sprite_skill; //
@@ -55,7 +57,7 @@ bool isClear = false;
 
 int score = 0;
 int Bullet_Time=16;
-int wave = 5;
+int wave = 7;
 									 // function prototypes
 void initD3D(HWND hWnd);    // sets up and initializes Direct3D
 void render_frame(void);    // renders a single frame
@@ -280,10 +282,13 @@ Hero hero;
 Enemy enemy[ENEMY_NUM];
 Enemy enemy2[ENEMY_NUM];
 Enemy Boss_enemy;
+Enemy Boss_slave[20];    // load to sprite
+Enemy Boss_slave1[20];    // load to sprite
 
 Bullet bullet[10];
 Bullet Enemy_bullet[10]; //enemy1 Bullet
 Bullet Enemy2_bullet[10]; //enemy2 Bullet
+Bullet Boss_bullet[25];
 
 
 // the entry point for any Windows program
@@ -398,6 +403,51 @@ void initD3D(HWND hWnd)
 		&d3ddev);
 
 	D3DXCreateSprite(d3ddev, &d3dspt);    // create the Direct3D Sprite object
+
+	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+		L"Boss_slave2.png",    // the file name
+		D3DX_DEFAULT,    // default width
+		D3DX_DEFAULT,    // default height
+		D3DX_DEFAULT,    // no mip mapping
+		NULL,    // regular usage
+		D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+		D3DPOOL_MANAGED,    // typical memory handling
+		D3DX_DEFAULT,    // no filtering
+		D3DX_DEFAULT,    // no mip filtering
+		D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+		NULL,    // no image info struct
+		NULL,    // not using 256 colors
+		&sprite_slave1);    // load to sprite
+
+	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+		L"Boss_slave.png",    // the file name
+		D3DX_DEFAULT,    // default width
+		D3DX_DEFAULT,    // default height
+		D3DX_DEFAULT,    // no mip mapping
+		NULL,    // regular usage
+		D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+		D3DPOOL_MANAGED,    // typical memory handling
+		D3DX_DEFAULT,    // no filtering
+		D3DX_DEFAULT,    // no mip filtering
+		D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+		NULL,    // no image info struct
+		NULL,    // not using 256 colors
+		&sprite_slave);    // load to sprite
+
+	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+		L"Boss_slave2.png",    // the file name
+		D3DX_DEFAULT,    // default width
+		D3DX_DEFAULT,    // default height
+		D3DX_DEFAULT,    // no mip mapping
+		NULL,    // regular usage
+		D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+		D3DPOOL_MANAGED,    // typical memory handling
+		D3DX_DEFAULT,    // no filtering
+		D3DX_DEFAULT,    // no mip filtering
+		D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+		NULL,    // no image info struct
+		NULL,    // not using 256 colors
+		&sprite_slave1);    // load to sprite
 
 	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
 		L"Clear.png",    // the file name
@@ -673,7 +723,11 @@ void init_game(void)
 		enemy2[i].speed = 3;
 		bullet[i].init(hero.x_pos, hero.y_pos);
 	}
-
+	for (int i = 0; i < 20; i++)
+	{
+		Boss_slave[i].speed = 5;
+		Boss_slave1[i].speed = 10;
+	}
 	//ÃÑ¾Ë ÃÊ±âÈ­ 
 
 }
@@ -706,10 +760,6 @@ void do_game_logic(void)
 		if (KEY_DOWN(VK_RIGHT))
 			hero.move(MOVE_RIGHT);
 
-		if (KEY_DOWN(0x43))
-		{
-			effect = true;
-		}
 
 		//ÃÑ¾Ë Ã³¸® 
 		
@@ -979,7 +1029,7 @@ void render_frame(void)
 		for (int i = 0; i < ENEMY_NUM; i++)
 		{
 			if (abs(hero.x_pos - enemy[i].x_pos) <= 30 && abs(hero.y_pos - enemy[i].y_pos) <= 10 ||
-				abs(hero.x_pos - enemy2[i].x_pos) <= 30 && abs(hero.y_pos - enemy2[i].y_pos) <= 10)
+				abs(hero.x_pos - enemy2[i].x_pos) <= 30 && abs(hero.y_pos - enemy2[i].y_pos) <= 10 )
 				effect = true;
 		}
 		if (hero.HP > 0)
@@ -1022,8 +1072,56 @@ void render_frame(void)
 		}
 		else
 			isLive = false;
-	}
+
+		if (wave == 7)
+		{
+			for (int i = 0; i < 20; i++)
+			{
+				if (Boss_slave[i].Enemy_Show)
+				{
+					RECT part7;
+					D3DXVECTOR3 center7(0.0f, 0.0f, 0.0f);
+					SetRect(&part7, 0, 0, 64, 64);
+					for (int i = 0; i < 20; i++)
+					{
+						D3DXVECTOR3 position7(Boss_slave[i].x_pos, Boss_slave[i].y_pos, 0.0f);
+						d3dspt->Draw(sprite_slave, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
+					}
+				}
+				else
+				{
+					RECT part7;
+					D3DXVECTOR3 center7(0.0f, 0.0f, 0.0f);
+					SetRect(&part7, 0, 0, 64, 64);
+						D3DXVECTOR3 position7(Boss_slave[i].x_pos=-80, Boss_slave[i].y_pos=-80, 0.0f);
+						d3dspt->Draw(sprite_slave, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
+				}
+
+				if (Boss_slave1[i].Enemy_Show)
+				{
+					RECT part7;
+					D3DXVECTOR3 center7(0.0f, 0.0f, 0.0f);
+					SetRect(&part7, 0, 0, 64, 64);
+					for (int i = 0; i < 20; i++)
+					{
+						D3DXVECTOR3 position7(Boss_slave1[i].x_pos, Boss_slave1[i].y_pos, 0.0f);
+						d3dspt->Draw(sprite_slave1, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
+					}
+				}
+
+				else
+				{
+					RECT part7;
+					D3DXVECTOR3 center7(0.0f, 0.0f, 0.0f);
+					SetRect(&part7, 0, 0, 64, 64);
+					D3DXVECTOR3 position7(Boss_slave1[i].x_pos = -80, Boss_slave1[i].y_pos = 600, 0.0f);
+					d3dspt->Draw(sprite_slave1, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
+				}
+			}
+		}
 		Score_Manager();
+
+	}
 
 	if (!isLive)
 	{
@@ -1828,6 +1926,32 @@ void Coll()
 				bullet[i].move();
 		}
 	}
+
+	if (wave == 7)
+	{
+		for (int i = 0; i < ENEMY_NUM; i++)
+		{
+			if (bullet[i].bShow == true)
+			{
+				for (int j = 0; j < 20; j++)
+				{
+					if (j < 2)
+					{
+						if (bullet[i].check_collision(Boss_slave[j].x_pos, Boss_slave[j].y_pos))
+						{
+							Boss_slave[j].Enemy_Show = false;
+							break;
+						}
+					}
+					else
+					{
+						if (bullet[i].check_collision(Boss_slave[j].x_pos, Boss_slave[j].y_pos))
+							break;
+					}
+				}
+			}
+		}
+	}
 }
 
 void B_Coll()
@@ -1883,6 +2007,43 @@ void B_Coll()
 				bullet[i].Bmove();
 		}
 	}
+
+	if (wave == 7)
+	{
+		for (int i = 0; i < ENEMY_NUM; i++)
+		{
+			if (bullet[i].bbShow == true)
+			{
+				for (int j = 0; j < 20; j++)
+				{
+					if (abs(bullet[i].B_xpos - Boss_slave[j].x_pos) <= 30 && abs(bullet[i].B_ypos - Boss_slave[j].y_pos) <= 10)
+					{
+						score++;
+						bullet[i].bbShow = false;
+						Boss_slave[j].Enemy_Show = false;
+						break;
+					}
+
+					if (j < 2)
+					{
+						if (abs(bullet[i].B_xpos - Boss_slave1[j+10].x_pos) <= 30 && abs(bullet[i].B_ypos - Boss_slave1[j+10].y_pos) <= 10)
+						{
+							score++;
+							bullet[i].bbShow = false;
+							Boss_slave1[j+10].Enemy_Show = false;
+							break;
+						}
+					}
+					else if (abs(bullet[i].B_xpos - Boss_slave1[j].x_pos) <= 30 && abs(bullet[i].B_ypos - Boss_slave1[j].y_pos) <= 10)
+					{
+						score++;
+						bullet[i].bbShow = false;
+						break;
+					}
+				}
+			}
+		}
+	}
 }
 
 void Enemy_Move()
@@ -1906,7 +2067,6 @@ void Enemy_Move()
 		}
 		else
 			enemy2[i].Forward_move();
-
 		if(Enemy_bullet[i].B_ypos<500)
 			Enemy_bullet[i].Bmove();
 		else
@@ -1968,6 +2128,27 @@ void Enemy_Move()
 				else
 					score = 0;
 			}
+		}
+	}
+	if (wave == 7)
+	{
+		for (int i = 0; i < 20; i++)
+		{
+			if (Boss_slave[i].y_pos > 500)
+				Boss_slave[i].Enemy_Show = false;
+			else
+				Boss_slave[i].move();
+
+			if (abs(Boss_slave[i].x_pos - hero.x_pos) <= 30 && abs(Boss_slave[i].y_pos - hero.y_pos)<=10 ||
+				abs(Boss_slave1[i].x_pos - hero.x_pos) <= 30 && abs(Boss_slave1[i].y_pos - hero.y_pos) <= 10)
+			{
+				effect = true;
+			}
+
+			if (Boss_slave1[i].y_pos < 0)
+				Boss_slave1[i].Enemy_Show = false;
+			else
+				Boss_slave1[i].Forward_move();
 		}
 	}
 
@@ -2084,6 +2265,7 @@ void Wave_Up(bool &Create)
 
 void Create_Wave(int wave)
 {
+	static int Boss_Pattern = 1;
 	if (wave == 1)
 	{
 		for (int i = 0; i < ENEMY_NUM; i++)
@@ -2164,5 +2346,26 @@ void Create_Wave(int wave)
 		Boss_enemy.init(450, 30);
 		Boss_enemy.HP = 100;
 		Boss_enemy.Enemy_Show = true;
+		static int x_pos = 0;
+		if (Boss_Pattern == 0)
+		{
+			for (int i = 0; i < 20; i++)
+			{
+				Boss_slave[i].init(x_pos, Boss_slave[i].y_pos);
+				Boss_slave[i].Enemy_Show = true;
+				x_pos += 50;
+			}
+			x_pos = 0;
+		}
+		else if (Boss_Pattern == 1)
+		{
+			for (int i = 0; i < 20; i++)
+			{
+				Boss_slave1[i].init(x_pos, 500);
+				Boss_slave1[i].Enemy_Show = true;
+				x_pos += 50;
+			}
+			x_pos = 0;
+		}
 	}
 }
