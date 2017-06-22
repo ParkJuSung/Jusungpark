@@ -7,7 +7,6 @@
 #include <math.h>
 #include"resource.h"
 #include <MMSystem.h>
-#include<ctime>
 // define the screen resolution and keyboard macros
 #define SCREEN_WIDTH  1024
 #define SCREEN_HEIGHT 500
@@ -36,6 +35,7 @@ LPDIRECT3DTEXTURE9 sprite_slave; //Boss slave
 LPDIRECT3DTEXTURE9 sprite_slave1; //Boss slave1
 LPDIRECT3DTEXTURE9 sprite_Boss_bullet;
 LPDIRECT3DTEXTURE9 sprite_Boss_bullet2;
+LPDIRECT3DTEXTURE9 sprite_Boss_bullet3;
 LPDIRECT3DTEXTURE9 sprite_bullet;    // 위방향
 LPDIRECT3DTEXTURE9 sprite_Bbullet; // 아래방향
 LPDIRECT3DTEXTURE9 sprite_skill; //
@@ -60,7 +60,7 @@ bool isClear = false;
 int score = 0;
 int Bullet_Time=16;
 int wave = 7;
-int Boss_Pattern = 0;
+int Boss_Pattern = 4;
 									 // function prototypes
 void initD3D(HWND hWnd);    // sets up and initializes Direct3D
 void render_frame(void);    // renders a single frame
@@ -74,7 +74,6 @@ void B_Coll();
 void Enemy_Move(bool &Create);
 void Create_Wave(int wave, bool &Create);
 void Wave_Up(bool &Create);
-void Coll_Effect();
 // the WindowProc function prototype
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -256,7 +255,7 @@ void Bullet::Back_Hide()
 
 void Bullet::Bmove()
 {
-	B_ypos += 15;
+	B_ypos += speed;
 }
 bool Bullet::show()
 {
@@ -270,7 +269,7 @@ void Bullet::active()
 
 void Bullet::move()
 {
-	y_pos -= 15;
+	y_pos -= speed;
 }
 
 void Bullet::hide()
@@ -292,8 +291,8 @@ Bullet bullet[10];
 Bullet Enemy_bullet[10]; //enemy1 Bullet
 Bullet Enemy2_bullet[10]; //enemy2 Bullet
 
-Bullet Boss_bullet[25];
-Bullet Boss_bullet1[25];
+Bullet Boss_bullet[20];
+Bullet Boss_bullet1[20];
 
 // the entry point for any Windows program
 int WINAPI WinMain(HINSTANCE hInstance,
@@ -408,6 +407,21 @@ void initD3D(HWND hWnd)
 
 	D3DXCreateSprite(d3ddev, &d3dspt);    // create the Direct3D Sprite object
 
+
+	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
+		L"Boss_Bullet3.png",    // the file name
+		D3DX_DEFAULT,    // default width
+		D3DX_DEFAULT,    // default height
+		D3DX_DEFAULT,    // no mip mapping
+		NULL,    // regular usage
+		D3DFMT_A8R8G8B8,    // 32-bit pixels with alpha
+		D3DPOOL_MANAGED,    // typical memory handling
+		D3DX_DEFAULT,    // no filtering
+		D3DX_DEFAULT,    // no mip filtering
+		D3DCOLOR_XRGB(255, 0, 255),    // the hot-pink color key
+		NULL,    // no image info struct
+		NULL,    // not using 256 colors
+		&sprite_Boss_bullet3);    // load to sprite
 
 	D3DXCreateTextureFromFileEx(d3ddev,    // the device pointer
 		L"Boss_Bullet.png",    // the file name
@@ -736,7 +750,7 @@ void init_game(void)
 	//PlaySound(TEXT("Strikers 1945 - BGM 04 Track 04.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP | SND_NODEFAULT);
 	hero.HP = 3;
 	Boss_enemy.HP = 100;
-
+	
 	//객체 초기화 
 	SIZE s;
 	ZeroMemory(&s, sizeof(SIZE));
@@ -744,7 +758,8 @@ void init_game(void)
 	s.cy = (LONG)::GetSystemMetrics(SM_CYFULLSCREEN);
 
 	hero.init(s.cx/4, s.cy/4);
-
+	
+	
 	//적들 초기화 
 	for (int i = 0; i<ENEMY_NUM; i++)
 	{
@@ -758,12 +773,17 @@ void init_game(void)
 			Enemy2_bullet[i].bShow = true;*/
 		enemy[i].speed = 3;
 		enemy2[i].speed = 3;
+		Enemy_bullet[i].speed = 15;
+		Enemy2_bullet[i].speed = 20;
+		bullet[i].speed = 18;
 		bullet[i].init(hero.x_pos, hero.y_pos);
 	}
 	for (int i = 0; i < 20; i++)
 	{
 		Boss_slave[i].speed = 5;
 		Boss_slave1[i].speed = 10;
+		Boss_bullet[i].speed = 15;
+		Boss_bullet1[i].speed = 20;
 	}
 	//총알 초기화 
 
@@ -1153,6 +1173,47 @@ void render_frame(void)
 					D3DXVECTOR3 position7(Boss_slave1[i].x_pos = -80, Boss_slave1[i].y_pos = -80, 0.0f);
 					d3dspt->Draw(sprite_slave1, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
 				}
+
+				if (Boss_bullet[i].bShow == true)
+				{
+					RECT part7;
+					D3DXVECTOR3 center7(0.0f, 0.0f, 0.0f);
+					SetRect(&part7, 0, 0, 64, 64);
+					for (int i = 0; i < 20; i++)
+					{
+						D3DXVECTOR3 position7(Boss_bullet[i].B_xpos, Boss_bullet[i].B_ypos, 0.0f);
+						d3dspt->Draw(sprite_Boss_bullet, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
+					}
+				}
+				else
+				{
+					RECT part7;
+					D3DXVECTOR3 center7(0.0f, 0.0f, 0.0f);
+					SetRect(&part7, 0, 0, 64, 64);
+					D3DXVECTOR3 position7(Boss_bullet[i].B_xpos = -80, Boss_bullet[i].B_ypos = -80, 0.0f);
+					d3dspt->Draw(sprite_Boss_bullet, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
+				}
+
+				if (Boss_bullet1[i].bShow == true)
+				{
+					RECT part7;
+					D3DXVECTOR3 center7(0.0f, 0.0f, 0.0f);
+					SetRect(&part7, 0, 0, 64, 64);
+					for (int i = 0; i < 20; i++)
+					{
+						D3DXVECTOR3 position7(Boss_bullet1[i].B_xpos, Boss_bullet1[i].B_ypos, 0.0f);
+						d3dspt->Draw(sprite_Boss_bullet2, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
+					}
+				}
+				else
+				{
+					RECT part7;
+					D3DXVECTOR3 center7(0.0f, 0.0f, 0.0f);
+					SetRect(&part7, 0, 0, 64, 64);
+					D3DXVECTOR3 position7(Boss_bullet1[i].B_xpos = -80, Boss_bullet1[i].B_ypos = -80, 0.0f);
+					d3dspt->Draw(sprite_Boss_bullet2, &part7, &center7, &position7, D3DCOLOR_ARGB(255, 255, 255, 255));
+				}
+
 			}
 		}
 		Score_Manager();
@@ -2079,7 +2140,7 @@ void B_Coll()
 						break;
 					}
 				}
-				if (abs(bullet[i].B_xpos - Boss_enemy.x_pos) <= 65 && abs(bullet[i].B_ypos - Boss_enemy.y_pos) <= 70)
+				if (abs(bullet[i].B_xpos - Boss_enemy.x_pos) <= 65 && abs(bullet[i].B_ypos - Boss_enemy.y_pos) <= 50)
 				{
 					Boss_enemy.HP--;
 					score++;						
@@ -2210,12 +2271,22 @@ void Enemy_Move(bool &Create)
 				effect = true;
 			}
 
+			if (Boss_bullet[i].bShow = true)
+			{
+				Boss_bullet[i].Bmove();
+			}
+			
+			if (Boss_bullet1[i].bShow = true)
+			{
+				Boss_bullet1[i].Bmove();
+
+			}
 			if (count >= 40 && (Boss_Pattern == 0 || Boss_Pattern == 1))
 			{
 				Boss_Pattern++;
 				Create = false;
 			}
-			
+
 
 		}
 	}
@@ -2420,7 +2491,7 @@ void Create_Wave(int wave,bool &Create)
 		{
 			for (int i = 0; i < 20; i++)
 			{
-				Boss_slave[i].init(x_pos, Boss_slave[i].y_pos);
+				Boss_slave[i].init(x_pos, 0);
 				Boss_slave[i].Enemy_Show = true;
 				x_pos += 50;
 			}
@@ -2453,7 +2524,26 @@ void Create_Wave(int wave,bool &Create)
 				Boss_Pattern++;
 			}
 			Create = false;
-
 		}
+		else if (Boss_Pattern == 3)
+		{
+			for (int i = 0; i < 10; i++)
+			{
+				Boss_bullet[i].B_xpos = i*50; 
+				Boss_bullet[i].B_ypos = i*20;
+				Boss_bullet[i].bShow = true;
+			}
+		}
+
+		else if (Boss_Pattern == 4)
+		{
+			for (int i = 0; i < 10; i++)
+			{
+				Boss_bullet1[i].B_xpos = i * 50 +500;
+				Boss_bullet1[i].B_ypos = i * 20;
+				Boss_bullet1[i].bShow = true;
+			}
+		}
+
 	}
 }
