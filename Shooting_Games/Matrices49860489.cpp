@@ -751,7 +751,7 @@ void initD3D(HWND hWnd)
 void init_game(void)
 {
 	PlaySound(TEXT("Strikers 1945 - BGM 04 Track 04.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP | SND_NODEFAULT);
-	hero.HP = 100;
+	hero.HP = 4;
 	Boss_enemy.HP = 110;
 	
 	//∞¥√º √ ±‚»≠ 
