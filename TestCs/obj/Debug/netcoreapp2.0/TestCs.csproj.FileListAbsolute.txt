@@ -1,0 +1,10 @@
+C:\Users\parkjoosung\Documents\GitHub\Unity,Directx\TestCs\bin\Debug\netcoreapp2.0\TestCs.deps.json
+C:\Users\parkjoosung\Documents\GitHub\Unity,Directx\TestCs\bin\Debug\netcoreapp2.0\TestCs.runtimeconfig.json
+C:\Users\parkjoosung\Documents\GitHub\Unity,Directx\TestCs\bin\Debug\netcoreapp2.0\TestCs.runtimeconfig.dev.json
+C:\Users\parkjoosung\Documents\GitHub\Unity,Directx\TestCs\bin\Debug\netcoreapp2.0\TestCs.dll
+C:\Users\parkjoosung\Documents\GitHub\Unity,Directx\TestCs\bin\Debug\netcoreapp2.0\TestCs.pdb
+C:\Users\parkjoosung\Documents\GitHub\Unity,Directx\TestCs\obj\Debug\netcoreapp2.0\TestCs.csproj.CoreCompileInputs.cache
+C:\Users\parkjoosung\Documents\GitHub\Unity,Directx\TestCs\obj\Debug\netcoreapp2.0\TestCs.AssemblyInfoInputs.cache
+C:\Users\parkjoosung\Documents\GitHub\Unity,Directx\TestCs\obj\Debug\netcoreapp2.0\TestCs.AssemblyInfo.cs
+C:\Users\parkjoosung\Documents\GitHub\Unity,Directx\TestCs\obj\Debug\netcoreapp2.0\TestCs.dll
+C:\Users\parkjoosung\Documents\GitHub\Unity,Directx\TestCs\obj\Debug\netcoreapp2.0\TestCs.pdb
