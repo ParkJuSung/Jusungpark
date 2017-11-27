@@ -1,0 +1,4 @@
+sceneSetups:
+- path: Assets/KakaoProblem.unity
+  isLoaded: 1
+  isActive: 1
