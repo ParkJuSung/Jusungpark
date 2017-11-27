@@ -39,12 +39,8 @@ class BoardManager
     {
         for (int i = 0; i < r; i++)
         {
-            for (int j = 0; j < c; j++)
-            {
-                Debug.Log(board[i, j]);
-                //Console.Write(board[i, j]);
-            }
-            //Console.WriteLine();
+
+            Debug.Log(board[i, 0] + " " + board[i, 1] + " " + board[i, 2] + " " + board[i, 3] + " " + board[i, 4] + " " + board[i, 5]);
         }
     }
 
